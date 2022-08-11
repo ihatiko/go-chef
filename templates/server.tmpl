@@ -1,0 +1,28 @@
+package {{.Package}}
+
+import (
+    {{range .}}
+    {{.}}
+    {{end}}
+)
+
+type Server struct {
+    {{range .}}
+    {{.}}
+    {{end}}
+}
+
+func NewServer() *Server {
+	return &Server{
+
+	}
+}
+
+func (server *Server) Run() error {
+    //TODO RUN COMPONENTS
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+	return nil
+}

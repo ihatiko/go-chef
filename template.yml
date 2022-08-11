@@ -1,0 +1,27 @@
+tree:
+  domain-components:
+    name: project1
+  settings:
+    project-path: /home/slava/GolandProjects/awesomeProject2
+    project-name: awesomeProject2
+    external-components:
+      - database
+  root-component:
+    generated-files:
+      - name: main
+        extension: go
+        template: main
+      - name: .gitignore
+        template: .gitignore
+    nodes:
+      - name: cmd
+        generated-files:
+          - name: cmd
+            extension: go
+            template: cmd
+      - name: config
+        generated-files:
+          - name: config
+            extension: go
+          - name: config
+            extension: yml

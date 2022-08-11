@@ -1,0 +1,4 @@
+func{{ if .InheritType}}({{.InheritType}}){{end}} {{.Name}}{{ if .Params}}({{.Params}}{{end}}) {{.ReturnType}} {
+     {{.Content}} {{ if .Return}}
+     return {{.Return}}{{end}}
+}

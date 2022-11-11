@@ -1,15 +1,17 @@
 package {{.Package}}
 
 import (
-    {{range .}}
-    {{.}}
-    {{end}}
+	"context"
+	"github.com/gofiber/fiber/v2"
+	"sync"
+	"test/config"
 )
 
 type Server struct {
-    {{range .}}
-    {{.}}
-    {{end}}
+	HttpServer      *fiber.App
+	Config          *config.Config
+	Providers       *providers.Container
+	GracefulContext *GracefulContext
 }
 
 func NewServer() *Server {

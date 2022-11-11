@@ -2,10 +2,11 @@ tree:
   domain-components:
     name: project1
   settings:
-    project-path: /home/slava/GolandProjects/awesomeProject2
+    project-path: C:\Users\admin\GolandProjects\awesomeProject2
     project-name: awesomeProject2
     external-components:
       - database
+      - log
   root-component:
     generated-files:
       - name: main
@@ -23,5 +24,17 @@ tree:
         generated-files:
           - name: config
             extension: go
+            template: config
           - name: config
             extension: yml
+            template: config-yml
+      - name: internal
+        nodes:
+          - name: server
+            generated-files:
+              - name: server
+                extension: go
+                template: server
+              - name: graceful-shutdown
+                extension: go
+                template: graceful-shutdown

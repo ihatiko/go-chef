@@ -176,7 +176,7 @@ func BuildRootFiles(path string, node *models.RootNode, settings *models.Setting
 	for _, file := range node.GeneratedFiles {
 		b, err := os.ReadFile(fmt.Sprintf("templates/%s.tmpl", file.Template))
 		if err != nil {
-			fmt.Errorf(err.Error())
+			panic(err)
 		}
 		t, err := template.New("").Parse(string(b))
 		fileName := file.Name
@@ -185,7 +185,7 @@ func BuildRootFiles(path string, node *models.RootNode, settings *models.Setting
 		}
 		f, err := os.Create(filepath.Join(path, fileName))
 		if err != nil {
-			fmt.Errorf(err.Error())
+			panic(err)
 		}
 		golangFile := GolangFile{
 			Package:    mainPackage,
@@ -193,7 +193,7 @@ func BuildRootFiles(path string, node *models.RootNode, settings *models.Setting
 		}
 		err = t.ExecuteTemplate(f, "", golangFile)
 		if err != nil {
-			fmt.Errorf(err.Error())
+			panic(err)
 		}
 	}
 }
@@ -202,19 +202,37 @@ func BuildFiles(path string, node *models.Node, settings *models.Settings) {
 	for _, file := range node.GeneratedFiles {
 		b, err := os.ReadFile(fmt.Sprintf("templates/%s.tmpl", file.Template))
 		if err != nil {
-			fmt.Errorf(err.Error())
+			panic(err)
 		}
 		t, err := template.New("").Parse(string(b))
-		f, err := os.Create(filepath.Join(path, node.Name, fmt.Sprintf("%s.%s", file.Name, file.Extension)))
+		p := filepath.Join(path, node.Name, fmt.Sprintf("%s.%s", file.Name, file.Extension))
+		f, err := os.Create(p)
 		if err != nil {
-			fmt.Errorf(err.Error())
+			panic(err)
 		}
 		golangFile := GolangFile{
 			Package: strings.Replace(node.Name, "-", "_", 1),
 		}
+		FillRootSettings(file, settings, &golangFile)
 		err = t.ExecuteTemplate(f, "", golangFile)
 		if err != nil {
-			fmt.Errorf(err.Error())
+			panic(err)
 		}
+	}
+}
+
+func FillRootSettings(file models.GeneratedFile, settings *models.Settings, golangFile *GolangFile) {
+	if file.Name == "config" && file.Extension == "yml" {
+		var configYamlData []string
+		for _, ext := range settings.ExternalComponents {
+			b, err := os.ReadFile(fmt.Sprintf("components/%s/%s", ext, "config.yml"))
+			if err != nil {
+				panic(err)
+			}
+			configYamlData = append(configYamlData, fmt.Sprintf("%s\n\n", string(b)))
+		}
+		golangFile.Dependency = struct {
+			Settings []string
+		}{Settings: configYamlData}
 	}
 }

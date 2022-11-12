@@ -28,19 +28,6 @@ func (s *Server) GracefulShutdown() {
 	log.Info("Server exit properly")
 }
 
-func (s *Server) WaitJobs() error {
-	s.GracefulContext.WgJobs.Wait()
-	return nil
-}
-func (s *Server) NatsDelay() error {
-	time.Sleep(time.Second * s.Config.Nats.ProcessTimeout)
-	return nil
-}
-func (s *Server) Delay() error {
-	time.Sleep(time.Second * s.Config.Server.CtxDefaultTimeout)
-	return nil
-}
-
 func Compose(fns ...func() error) {
 	for _, fn := range fns {
 		err := fn()

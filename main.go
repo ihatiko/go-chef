@@ -23,9 +23,10 @@ const (
 	yml = "yml"
 )
 const (
-	components  = "components"
-	templateYml = "template.yml"
-	mainPackage = "main"
+	components    = "components"
+	templateYml   = "template.yml"
+	configuration = "config"
+	mainPackage   = "main"
 )
 
 type GolangFile struct {
@@ -41,7 +42,7 @@ func LoadConfig(filename string) (*config.Config, error) {
 	cfg.SetConfigName(filename)
 	cfg.AddConfigPath(".")
 	cfg.AutomaticEnv()
-	cfg.SetConfigType("yml")
+	cfg.SetConfigType(yml)
 	if err := cfg.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			return nil, errors.New("config file not found")
@@ -222,7 +223,7 @@ func BuildFiles(path string, node *models.Node, settings *models.Settings) {
 }
 
 func FillRootSettings(file models.GeneratedFile, settings *models.Settings, golangFile *GolangFile) {
-	if file.Name == "config" && file.Extension == "yml" {
+	if file.Name == configuration && file.Extension == yml {
 		var configYamlData []string
 		for _, ext := range settings.ExternalComponents {
 			b, err := os.ReadFile(fmt.Sprintf("components/%s/%s", ext, "config.yml"))

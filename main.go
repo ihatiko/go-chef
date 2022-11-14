@@ -5,6 +5,7 @@ import (
 	"awesomeProject/pkg/config"
 	"errors"
 	"fmt"
+	dynamic_struct "github.com/ihatiko/dynamic-struct"
 	"github.com/spf13/viper"
 	"log"
 	"os"
@@ -30,8 +31,8 @@ const (
 )
 
 type GolangFile struct {
-	Package    string
-	Dependency interface{}
+	Package string
+	Env     interface{}
 }
 type Config struct {
 	Tree *models.Tree
@@ -84,8 +85,8 @@ func main() {
 	}
 	cmp := GetExternalComponents(config)
 	FillRequiredComponents(&cmp)
-
-	BuildTree(config.Tree)
+	env := dynamic_struct.ConstructStruct(map[string]any{"ProjectName": config.Tree.Settings.ProjectName})
+	BuildTree(config.Tree, env)
 
 	//TODO constants
 	CommandsComposer(config,
@@ -152,28 +153,28 @@ func ExecCommand(config *Config, command string) {
 	cmdFolder.Run()
 }
 
-func BuildTree(tree *models.Tree) {
-	BuildRootFiles(tree.Settings.ProjectPath, tree.RootComponent, tree.Settings)
+func BuildTree(tree *models.Tree, env any) {
+	BuildRootFiles(tree.Settings.ProjectPath, tree.RootComponent, env)
 	for _, nd := range tree.RootComponent.Nodes {
-		BuildNodes(tree.Settings.ProjectPath, nd, tree.Settings)
-		BuildFiles(tree.Settings.ProjectPath, nd, tree.Settings)
+		BuildNodes(tree.Settings.ProjectPath, nd, tree.Settings, env)
+		BuildFiles(tree.Settings.ProjectPath, nd, tree.Settings, env)
 	}
 	for _, nd := range tree.DomainComponents {
-		BuildNodes(tree.Settings.ProjectPath, nd, tree.Settings)
+		BuildNodes(tree.Settings.ProjectPath, nd, tree.Settings, env)
 	}
 }
 
-func BuildNodes(path string, node *models.Node, settings *models.Settings) {
+func BuildNodes(path string, node *models.Node, settings *models.Settings, env any) {
 	if len(node.Nodes) > 0 || len(node.GeneratedFiles) > 0 {
 		os.Mkdir(filepath.Join(path, node.Name), os.ModePerm)
 	}
 	for _, nd := range node.Nodes {
-		BuildNodes(filepath.Join(path, node.Name), nd, settings)
-		BuildFiles(filepath.Join(path, node.Name), nd, settings)
+		BuildNodes(filepath.Join(path, node.Name), nd, settings, env)
+		BuildFiles(filepath.Join(path, node.Name), nd, settings, env)
 	}
 }
 
-func BuildRootFiles(path string, node *models.RootNode, settings *models.Settings) {
+func BuildRootFiles(path string, node *models.RootNode, obj any) {
 	for _, file := range node.GeneratedFiles {
 		b, err := os.ReadFile(fmt.Sprintf("templates/%s.tmpl", file.Template))
 		if err != nil {
@@ -188,18 +189,18 @@ func BuildRootFiles(path string, node *models.RootNode, settings *models.Setting
 		if err != nil {
 			panic(err)
 		}
-		golangFile := GolangFile{
-			Package:    mainPackage,
-			Dependency: settings,
-		}
-		err = t.ExecuteTemplate(f, "", golangFile)
+		obj = dynamic_struct.ReconstructStruct(obj, dynamic_struct.Field{
+			Name:  "Package",
+			Value: mainPackage,
+		})
+		err = t.ExecuteTemplate(f, "", obj)
 		if err != nil {
 			panic(err)
 		}
 	}
 }
 
-func BuildFiles(path string, node *models.Node, settings *models.Settings) {
+func BuildFiles(path string, node *models.Node, settings *models.Settings, obj any) {
 	for _, file := range node.GeneratedFiles {
 		b, err := os.ReadFile(fmt.Sprintf("templates/%s.tmpl", file.Template))
 		if err != nil {
@@ -211,18 +212,19 @@ func BuildFiles(path string, node *models.Node, settings *models.Settings) {
 		if err != nil {
 			panic(err)
 		}
-		golangFile := GolangFile{
-			Package: strings.Replace(node.Name, "-", "_", 1),
-		}
-		FillRootSettings(file, settings, &golangFile)
-		err = t.ExecuteTemplate(f, "", golangFile)
+		obj = dynamic_struct.ReconstructStruct(obj, dynamic_struct.Field{
+			Name:  "Package",
+			Value: strings.Replace(node.Name, "-", "_", 1),
+		})
+		obj = FillRootSettings(file, settings, obj)
+		err = t.ExecuteTemplate(f, "", obj)
 		if err != nil {
 			panic(err)
 		}
 	}
 }
 
-func FillRootSettings(file models.GeneratedFile, settings *models.Settings, golangFile *GolangFile) {
+func FillRootSettings(file models.GeneratedFile, settings *models.Settings, obj any) any {
 	if file.Name == configuration && file.Extension == yml {
 		var configYamlData []string
 		for _, ext := range settings.ExternalComponents {
@@ -230,10 +232,12 @@ func FillRootSettings(file models.GeneratedFile, settings *models.Settings, gola
 			if err != nil {
 				panic(err)
 			}
-			configYamlData = append(configYamlData, fmt.Sprintf("%s\n\n", string(b)))
+			configYamlData = append(configYamlData, fmt.Sprintf("%s\n", string(b)))
 		}
-		golangFile.Dependency = struct {
-			Settings []string
-		}{Settings: configYamlData}
+		obj = dynamic_struct.ReconstructStruct(obj, dynamic_struct.Field{
+			Name:  "LogFile",
+			Value: configYamlData,
+		})
 	}
+	return obj
 }

@@ -3,11 +3,13 @@ package main
 import (
 	"awesomeProject/models"
 	"awesomeProject/pkg/config"
+	"bytes"
 	"errors"
 	"fmt"
+	"github.com/iancoleman/strcase"
 	dynamic_struct "github.com/ihatiko/dynamic-struct"
+	"github.com/ihatiko/log"
 	"github.com/spf13/viper"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -59,7 +61,7 @@ func ParseConfig(v *config.Config) (*Config, error) {
 
 	err := v.Unmarshal(&c)
 	if err != nil {
-		log.Printf("unable to decode into struct, %v", err)
+		log.Error("unable to decode into struct, %v", err)
 		return nil, err
 	}
 
@@ -75,9 +77,17 @@ type ExternalComponent struct {
 }
 
 func main() {
+	logCfg := log.Config{
+		Caller:   false,
+		DevMode:  false,
+		Encoding: "console",
+		Level:    "debug",
+	}
+	logCfg.SetConfiguration("chef")
+
 	cfg, err := LoadConfig(templateYml)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	config, err := ParseConfig(cfg)
 	if err != nil {
@@ -85,14 +95,18 @@ func main() {
 	}
 	cmp := GetExternalComponents(config)
 	FillRequiredComponents(&cmp)
-	env := dynamic_struct.ConstructStruct(map[string]any{"ProjectName": config.Tree.Settings.ProjectName})
+	env := dynamic_struct.ConstructStruct(map[string]any{
+		"Grpc":        false, //TODO
+		"ProjectName": config.Tree.Settings.ProjectName,
+		"ServiceName": strings.ToLower(strcase.ToSnake(config.Tree.Settings.ProjectName)),
+	})
 	BuildTree(config.Tree, env)
 
 	//TODO constants
 	CommandsComposer(config,
-		goFmt,
-		fmt.Sprintf(goModInit, config.Tree.Settings.ProjectName),
-		goModTidy,
+		NewCommand(fmt.Sprintf(goModInit, config.Tree.Settings.ProjectName), true),
+		NewCommand(goFmt, true),
+		NewCommand(goModTidy, false),
 	)
 }
 func FillRequiredComponents(components *map[string]ExternalComponent) {
@@ -142,15 +156,40 @@ func GetComponentLogError() string {
 	return errMsg
 }
 
-func CommandsComposer(config *Config, commands ...string) {
+type Command struct {
+	cmd         string
+	skipOnError bool
+}
+
+func NewCommand(cmd string, skipOnError bool) Command {
+	return Command{cmd: cmd, skipOnError: skipOnError}
+}
+
+func CommandsComposer(config *Config, commands ...Command) {
+	consoleEnv := "bash"
+	if os.Getenv("GOOS") == "windows" || strings.Contains(strings.ToLower(os.Getenv("OS")), "windows") {
+		consoleEnv = "powershell"
+	}
 	for _, command := range commands {
-		ExecCommand(config, command)
+		err := ExecCommand(config, command.cmd, consoleEnv)
+		log.Info(command.cmd)
+		if err != nil && !command.skipOnError {
+			log.Error(err)
+			break
+		}
 	}
 }
-func ExecCommand(config *Config, command string) {
-	cmdFolder := exec.Command("bash", "-c", command)
+func ExecCommand(config *Config, command string, consoleEnv string) error {
+	cmdFolder := exec.Command(consoleEnv, "-c", command)
+	var out bytes.Buffer
+	cmdFolder.Stdin = strings.NewReader("some input")
+	cmdFolder.Stderr = &out
 	cmdFolder.Dir = config.Tree.Settings.ProjectPath
 	cmdFolder.Run()
+	if cmdFolder.ProcessState.ExitCode() > 0 {
+		return errors.New(out.String())
+	}
+	return nil
 }
 
 func BuildTree(tree *models.Tree, env any) {

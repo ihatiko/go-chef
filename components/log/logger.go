@@ -12,6 +12,7 @@ type Config struct {
 	Encoding string
 	Level    string
 	DevMode  bool
+	Caller   bool
 }
 type appLogger struct {
 	level       string

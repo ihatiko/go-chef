@@ -1,9 +1,27 @@
 package {{.Package}}
 
 import (
-
+	cfg "{{.ProjectName}}/config"
+	"{{.ProjectName}}/internal/server"
+    "{{.ProjectName}}/internal/server/registry/external-dependencies"
+    "github.com/ihatiko/config"
 )
 
-func Start() {
+const (
+	configPath = "./config/config"
+)
 
+func Run() {
+	cfg, err := config.GetConfig[cfg.Config](configPath)
+	if err != nil {
+		panic(err)
+	}
+    cfg.Log.SetConfiguration(cfg.Server.Name)
+
+    server := server.NewServer(
+    	cfg,
+    	external_dependencies.NewExternalDependencies(
+    	),
+    )
+    server.Run()
 }

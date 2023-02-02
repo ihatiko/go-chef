@@ -2,10 +2,9 @@ tree:
   domain-components:
     name: project1
   settings:
-    project-path: /home/slava/GolandProjects/awesomeProject4
-    project-name: awesomeProject4
+    project-path: C:\Users\admin\GolandProjects\awesomeProject5
+    project-name: awesomeProject5
     external-components:
-      - database
       - log
   root-component:
     generated-files:
@@ -17,7 +16,7 @@ tree:
     nodes:
       - name: cmd
         generated-files:
-          - name: cmd
+          - name: cmd-server
             extension: go
             template: cmd
       - name: config
@@ -38,3 +37,28 @@ tree:
               - name: graceful-shutdown
                 extension: go
                 template: graceful-shutdown
+            nodes:
+            - name: registry
+              nodes:
+                - name: components
+                  nodes:
+                    - name: feature-components
+                      generated-files:
+                        - name: components
+                          extension: go
+                          template: components
+                    - name: transport
+                      nodes:
+                        - name: open-api
+                          generated-files:
+                            - name: open-api
+                              extension: go
+                              template: open-api-transport
+                            - name: middlewares
+                              extension: go
+                              template: open-api-middlewares-transport
+                - name: external-dependencies
+                  generated-files:
+                    - name: external-dependencies
+                      extension: go
+                      template: external-dependencies

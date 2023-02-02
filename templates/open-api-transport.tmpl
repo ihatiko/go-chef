@@ -1,0 +1,48 @@
+package open_api
+
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/ihatiko/di"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
+)
+
+const (
+	metrics = "/metrics"
+	live  = "/live"
+	health  = "/health"
+)
+
+type openApiTransport struct {
+	App *fiber.App
+}
+
+func NewOpenApiTransport(
+	app *fiber.App,
+) *openApiTransport {
+
+	return &openApiTransport{
+		App: app,
+	}
+}
+
+func (cnt *openApiTransport) ServicePoints() {
+	di.Invoke(func() {
+		cnt.App.Get(health, cnt.health)
+	})
+	cnt.App.Get(live, cnt.live)
+	cnt.App.Get(metrics, func(ctx *fiber.Ctx) error {
+		fasthttpadaptor.NewFastHTTPHandler(promhttp.Handler())(ctx.Context())
+		return nil
+	})
+}
+
+func (cnt *openApiTransport) live(ctx *fiber.Ctx) error {
+	ctx.Write([]byte("ok"))
+	return nil
+}
+
+func (cnt *openApiTransport) health(ctx *fiber.Ctx) error {
+	ctx.Write([]byte("ok"))
+	return nil
+}

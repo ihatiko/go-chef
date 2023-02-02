@@ -1,25 +1,35 @@
 package {{.Package}}
 
 import (
+	"{{.ProjectName}}/config"
+	externalDependencies "{{.ProjectName}}/internal/server/registry/external-dependencies"
 	"context"
 	"github.com/gofiber/fiber/v2"
 	"sync"
-	"test/config"
 )
 
 type Server struct {
 	HttpServer      *fiber.App
 	Config          *config.Config
-	Providers       *providers.Container
+	ExternalDependencies *externalDependencies.ExternalDependencies
 	GracefulContext *GracefulContext
 }
 
-func NewServer() *Server {
+func NewServer(config *config.Config, externalDependencies *externalDependencies.ExternalDependencies) *Server {
+	ctx, cancelFunc := context.WithCancel(context.Background())
 	return &Server{
-
+		Config:               config,
+		ExternalDependencies: externalDependencies,
+		GracefulContext: &GracefulContext{
+			Context:    ctx,
+			CancelFunc: cancelFunc,
+			WgJobs:     sync.WaitGroup{},
+		},
 	}
 }
 
-func (server *Server) Run() error {
-
+func (s *Server) Run() {
+	s.ExternalDependencies.Registry()
+	//s.Registry()
+    //s.StartHttpServer()
 }

@@ -31,5 +31,6 @@ func NewServer(config *config.Config, externalDependencies *externalDependencies
 func (s *Server) Run() {
 	s.ExternalDependencies.Registry()
 	//s.Registry()
-    //s.StartHttpServer()
+    s.StartHttpServer()
+    s.GracefulShutdown()
 }

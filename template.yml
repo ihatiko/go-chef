@@ -37,6 +37,9 @@ tree:
               - name: graceful-shutdown
                 extension: go
                 template: graceful-shutdown
+              - name: http-server
+                extension: go
+                template: http-server
             nodes:
             - name: registry
               nodes:

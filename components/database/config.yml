@@ -1,8 +1,0 @@
-database:
-  Host: localhost
-  Port: 5672
-  User: postgres
-  Password: postgres
-  Dbname: postgres
-  Driver: pgx
-  CreateDb: false

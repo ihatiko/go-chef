@@ -3,9 +3,11 @@ package main
 import (
 	"awesomeProject/models"
 	"awesomeProject/pkg/config"
+	"awesomeProject/ui/components/input"
 	"bytes"
 	"errors"
 	"fmt"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/iancoleman/strcase"
 	dynamic_struct "github.com/ihatiko/dynamic-struct"
 	"github.com/ihatiko/log"
@@ -77,6 +79,13 @@ type ExternalComponent struct {
 }
 
 func main() {
+	input := input.InitialModel("project name", "Fill project name")
+	p := tea.NewProgram(&input)
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Alas, there's been an error: %v", err)
+		os.Exit(1)
+	}
+
 	logCfg := log.Config{
 		Caller:   false,
 		DevMode:  false,
@@ -93,6 +102,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	config.Tree.Settings.ProjectName = input.TextInput.Value()
 	cmp := GetExternalComponents(config)
 	FillRequiredComponents(&cmp)
 	env := dynamic_struct.ConstructStruct(map[string]any{

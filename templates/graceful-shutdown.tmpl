@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 )
 
 type GracefulContext struct {
@@ -22,9 +23,16 @@ func (s *Server) GracefulShutdown() {
 
 	Compose(
 		s.HttpServer.Shutdown,
+		s.Delay,
 	)
 
 	log.Info("Server exit properly")
+}
+
+func (s *Server) Delay() error {
+	log.Info("Waiting timeout")
+	time.Sleep(time.Second * s.Config.Server.TimeOut)
+	return nil
 }
 
 func Compose(fns ...func() error) {

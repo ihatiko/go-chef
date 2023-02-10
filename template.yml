@@ -2,8 +2,8 @@ tree:
   domain-components:
     name: project1
   settings:
-    project-path: C:\Users\admin\GolandProjects\awesomeProject5
-    project-name: awesomeProject5
+    project-path: C:\Users\user\GolandProjects\awesomeProject2
+    project-name: awesomeProject2
     external-components:
       - log
   root-component:

@@ -1,19 +1,19 @@
-# chef
+go-chef
 
 
-# chef add grpc-client-module href
+go-chef cook grpc-client-module href
 
-# chef cook project <projectName> --path
+go-chef cook project <projectName> --path
 
-# chef cook domain <domainName> --path
-# chef cook tests --path
-# chef cook component <componentName> --path
-# chef cook externalComponent <repositoryPath> --path
+go-chef cook domain <domainName> --path
+go-chef cook tests --path
+go-chef cook component <componentName> --path
+go-chef cook externalComponent <repositoryPath> --path
 
 
 
-# (x) default
-# (y) custom
+ (x) default
+ (y) custom
 
 // User
 // user

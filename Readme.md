@@ -1,5 +1,5 @@
 
-![img.png](assets/img.png)
+<img src='assets/img.png' width='25'>
 
 # go-chef
 

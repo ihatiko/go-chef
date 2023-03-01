@@ -1,5 +1,5 @@
 
-<img src='assets/img.png' width='25'>
+<img src='assets/img.png' width='200'>
 
 # go-chef
 

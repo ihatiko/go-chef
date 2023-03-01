@@ -85,7 +85,7 @@ type EnvironmentConfig struct {
 var ErrInvalidCommand = errors.New("invalid command. Please use --help to get more info")
 
 const HelpTemplate = `
-	- go-chef cook project
+	- go-chef cook-project
 		--PROJECT_PATH 
 			a path to the project
 		--PROJECT_NAME
@@ -120,7 +120,7 @@ func CommandProcess(args []string) (*EnvironmentConfig, bool, error) {
 	}
 	//TODO consts and move to new folder
 	switch strings.ToLower(args[1]) {
-	case "cook":
+	case "cook-project":
 		result = FillFlags(args[1:], result)
 	case "--help":
 		fmt.Printf(HelpTemplate)

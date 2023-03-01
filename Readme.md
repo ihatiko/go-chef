@@ -10,7 +10,7 @@ go install github.com/ihatiko/go-chef@latest
 ```bash
 go-chef --help
 ```
-	- go-chef cook project
+	- go-chef cook-project
 		--PROJECT_PATH 
 			a path to the project
 		--PROJECT_NAME

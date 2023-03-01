@@ -155,22 +155,22 @@ func main() {
 		Level:    "debug",
 	}
 	logCfg.SetConfiguration("go-chef")
-	ph, err := os.Getwd()
+	ph, err := os.Executable()
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = os.Chdir(ph)
-	fmt.Println(os.Getwd())
+	dir, err := os.ReadDir(ph)
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println(dir)
 	cfg, err := LoadConfig(templateYml)
 	if err != nil {
 		log.Fatal(err)
 	}
 	config, err := ParseConfig(cfg)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	config = FillEnv(config, envConfig)

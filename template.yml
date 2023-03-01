@@ -2,8 +2,8 @@ tree:
   domain-components:
     name: project1
   settings:
-    project-path: C:\Users\user\GolandProjects\awesomeProject2
-    project-name: awesomeProject2
+    project-path: C:\Users\user\GolandProjects\city-gateway
+    project-name: city_gateway
     external-components:
       - log
   root-component:
@@ -13,6 +13,11 @@ tree:
         template: main
       - name: .gitignore
         template: .gitignore
+      - name: Dockerfile
+        template: dockerfile
+      - name: .golangci
+        template: golangcilint
+        extension: yml
     nodes:
       - name: cmd
         generated-files:

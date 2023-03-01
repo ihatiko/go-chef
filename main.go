@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/caarlos0/env/v7"
 	"github.com/iancoleman/strcase"
 	dynamic_struct "github.com/ihatiko/dynamic-struct"
 	"github.com/ihatiko/log"
@@ -75,15 +76,26 @@ type ExternalComponent struct {
 	LogErrorContent string
 	External        bool
 }
+type EnvironmentConfig struct {
+	ProjectName string `env:"PROJECT_NAME"`
+	ProjectPath string `env:"PROJECT_PATH"`
+}
 
 func main() {
+	environmentConfig := EnvironmentConfig{}
+	if err := env.Parse(&environmentConfig); err != nil {
+		fmt.Printf("%+v\n", err)
+		return
+	}
+	fmt.Println(environmentConfig)
+	return
 	logCfg := log.Config{
 		Caller:   false,
 		DevMode:  false,
 		Encoding: "console",
 		Level:    "debug",
 	}
-	logCfg.SetConfiguration("chef")
+	logCfg.SetConfiguration("go-chef")
 
 	cfg, err := LoadConfig(templateYml)
 	if err != nil {

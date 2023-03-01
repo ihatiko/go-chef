@@ -123,13 +123,14 @@ func CommandProcess(args []string) (*EnvironmentConfig, bool, error) {
 	switch strings.ToLower(args[1]) {
 	case "cook-project":
 		result = FillFlags(args[1:], result)
+		return result, false, nil
 	case "--help":
 		fmt.Printf(HelpTemplate)
 		return result, true, nil
 	default:
 		return result, true, ErrInvalidCommand
 	}
-	return result, false, nil
+	return result, true, nil
 }
 
 func FillEnv(config *Config, data *EnvironmentConfig) *Config {
@@ -159,6 +160,7 @@ func main() {
 		log.Fatal(err)
 	}
 	err = os.Chdir(ph)
+	fmt.Println(os.Getwd())
 	if err != nil {
 		log.Fatal(err)
 	}

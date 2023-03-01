@@ -115,8 +115,9 @@ func FillFlags(args []string, cfg *EnvironmentConfig) *EnvironmentConfig {
 
 func CommandProcess(args []string) (*EnvironmentConfig, bool, error) {
 	result := &EnvironmentConfig{}
-	if len(args) < 1 {
-		return result, false, ErrInvalidCommand
+	if len(args) < 2 {
+		fmt.Printf(HelpTemplate)
+		return result, true, nil
 	}
 	//TODO consts and move to new folder
 	switch strings.ToLower(args[1]) {

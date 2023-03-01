@@ -154,7 +154,14 @@ func main() {
 		Level:    "debug",
 	}
 	logCfg.SetConfiguration("go-chef")
-
+	ph, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = os.Chdir(ph)
+	if err != nil {
+		log.Fatal(err)
+	}
 	cfg, err := LoadConfig(templateYml)
 	if err != nil {
 		log.Fatal(err)

@@ -2,8 +2,8 @@ tree:
   domain-components:
     name: project1
   settings:
-    project-path: C:\Users\user\GolandProjects\city-gateway
-    project-name: city_gateway
+    project-path: C:\Users\user\GolandProjects\example
+    project-name: example
     external-components:
       - log
   root-component:

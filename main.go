@@ -1,16 +1,17 @@
 package main
 
 import (
-	"awesomeProject/models"
-	"awesomeProject/pkg/config"
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/caarlos0/env/v7"
+	"github.com/go-playground/validator/v10"
 	"github.com/iancoleman/strcase"
 	dynamic_struct "github.com/ihatiko/dynamic-struct"
+	"github.com/ihatiko/go-chef/models"
+	"github.com/ihatiko/go-chef/pkg/config"
 	"github.com/ihatiko/log"
 	"github.com/spf13/viper"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -77,18 +78,74 @@ type ExternalComponent struct {
 	External        bool
 }
 type EnvironmentConfig struct {
-	ProjectName string `env:"PROJECT_NAME"`
-	ProjectPath string `env:"PROJECT_PATH"`
+	ProjectName string `validate:"required"`
+	ProjectPath string `validate:"required"`
+}
+
+var ErrInvalidCommand = errors.New("invalid command. Please use --help to get more info")
+
+const HelpTemplate = `
+	- go-chef cook project
+		--PROJECT_PATH 
+			a path to the project
+		--PROJECT_NAME
+			project name
+
+	- go-chef --help
+		get a program description
+`
+
+func FillFlags(args []string, cfg *EnvironmentConfig) *EnvironmentConfig {
+	//TODO сделать нормально
+	for _, arg := range args {
+		formattedArg := strings.Split(arg, "=")
+		if len(formattedArg) < 1 {
+			continue
+		}
+		switch strings.ToUpper(formattedArg[0]) {
+		case "--PROJECT_PATH":
+			cfg.ProjectPath = formattedArg[1]
+		case "--PROJECT_NAME":
+			cfg.ProjectName = formattedArg[1]
+		}
+
+	}
+	return cfg
+}
+
+func CommandProcess(args []string) (*EnvironmentConfig, bool, error) {
+	result := &EnvironmentConfig{}
+	if len(args) < 1 {
+		return result, false, ErrInvalidCommand
+	}
+	//TODO consts and move to new folder
+	switch strings.ToLower(args[1]) {
+	case "cook":
+		result = FillFlags(args[1:], result)
+	case "--help":
+		fmt.Printf(HelpTemplate)
+		return result, true, nil
+	default:
+		return result, true, ErrInvalidCommand
+	}
+	return result, false, nil
+}
+
+func FillEnv(config *Config, data *EnvironmentConfig) *Config {
+	config.Tree.Settings.ProjectPath = data.ProjectPath
+	config.Tree.Settings.ProjectName = data.ProjectName
+	return config
 }
 
 func main() {
-	environmentConfig := EnvironmentConfig{}
-	if err := env.Parse(&environmentConfig); err != nil {
-		fmt.Printf("%+v\n", err)
+	envConfig, terminated, err := CommandProcess(os.Args)
+	if err != nil {
+		fmt.Printf("%v\n", err)
 		return
 	}
-	fmt.Println(environmentConfig)
-	return
+	if terminated {
+		return
+	}
 	logCfg := log.Config{
 		Caller:   false,
 		DevMode:  false,
@@ -106,6 +163,18 @@ func main() {
 		panic(err)
 	}
 
+	config = FillEnv(config, envConfig)
+	validate := validator.New()
+	err = validate.Struct(envConfig)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	err = Mkdir(err, envConfig)
+	if err != nil {
+		log.Error(err)
+		return
+	}
 	cmp := GetExternalComponents(config)
 	FillRequiredComponents(&cmp)
 	env := dynamic_struct.ConstructStruct(map[string]any{
@@ -122,6 +191,20 @@ func main() {
 		NewCommand(goModTidy, false),
 	)
 }
+
+func Mkdir(err error, envConfig *EnvironmentConfig) error {
+	_, err = os.ReadDir(envConfig.ProjectPath)
+	if errors.Is(err, fs.ErrNotExist) {
+		err := os.Mkdir(envConfig.ProjectPath, os.ModePerm)
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+		return nil
+	}
+	return err
+}
+
 func FillRequiredComponents(components *map[string]ExternalComponent) {
 	fmt.Println()
 }

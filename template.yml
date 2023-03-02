@@ -12,7 +12,7 @@ tree:
         extension: go
         template: main
       - name: .gitignore
-        template: .gitignore
+        template: gitignore
       - name: Dockerfile
         template: dockerfile
       - name: .golangci

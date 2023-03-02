@@ -1,12 +1,18 @@
 package log
 
 import (
+	_ "embed"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
 )
 
 var logger *zap.SugaredLogger
+
+var (
+	//go:embed config.yml
+	EmbedConfig []byte
+)
 
 type Config struct {
 	Encoding string

@@ -1,4 +1,0 @@
-log:
-  encoding: json
-  level: Info
-  devMode: true

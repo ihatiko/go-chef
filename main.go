@@ -8,7 +8,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/iancoleman/strcase"
 	dynamic_struct "github.com/ihatiko/dynamic-struct"
-	log2 "github.com/ihatiko/go-chef/components/log"
 	"github.com/ihatiko/go-chef/models"
 	"github.com/ihatiko/go-chef/pkg/config"
 	"github.com/ihatiko/log"
@@ -180,8 +179,8 @@ func main() {
 		log.Error(err)
 		return
 	}
-	cmp := GetExternalComponents(config)
-	FillRequiredComponents(&cmp)
+	/*	cmp := GetExternalComponents(config)
+		FillRequiredComponents(&cmp)*/
 	env := dynamic_struct.ConstructStruct(map[string]any{
 		"Grpc":        false, //TODO
 		"ProjectName": config.Tree.Settings.ProjectName,
@@ -367,13 +366,16 @@ func BuildFiles(path string, node *models.Node, settings *models.Settings, obj a
 func FillRootSettings(file models.GeneratedFile, settings *models.Settings, obj any) any {
 	if file.Name == configuration && file.Extension == yml {
 		var configYamlData []string
-		for _, ext := range settings.ExternalComponents {
-			//TODO перейти на систему динамических модулей
-			if ext == "log" {
-				b := log2.EmbedConfig
-				configYamlData = append(configYamlData, fmt.Sprintf("%s\n", string(b)))
-			}
-		}
+		/*		for _, ext := range settings.ExternalComponents {
+				//TODO перейти на систему динамических модулей
+				if ext == "log" {
+					b, err := os.ReadFile(fmt.Sprintf("components/%s/%s", ext, "config.yml"))
+					if err != nil {
+						panic(err)
+					}
+					configYamlData = append(configYamlData, fmt.Sprintf("%s\n", string(b)))
+				}
+			}*/
 		obj = dynamic_struct.ReconstructStruct(obj, dynamic_struct.Field{
 			Name:  "LogFile",
 			Value: configYamlData,

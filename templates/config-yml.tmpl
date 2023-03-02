@@ -9,6 +9,7 @@ server:
   maxConnectionIdle: 5
   maxConnectionAge: 5
 
-{{range $field := .LogFile }}
-{{- $field }}
-{{end }}
+log:
+  encoding: json
+  level: info
+  devMode: false

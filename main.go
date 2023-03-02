@@ -43,13 +43,12 @@ type Config struct {
 	Tree *models.Tree
 }
 
-func LoadConfig(filename string) (*config.Config, error) {
+func LoadConfig(file []byte) (*config.Config, error) {
 	cfg := config.New(viper.New())
-	cfg.SetConfigName(filename)
 	cfg.AddConfigPath(".")
 	cfg.AutomaticEnv()
 	cfg.SetConfigType(yml)
-	if err := cfg.ReadInConfig(); err != nil {
+	if err := cfg.ReadConfig(bytes.NewReader(file)); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			return nil, errors.New("config file not found")
 		}
@@ -149,7 +148,6 @@ func main() {
 		fmt.Printf("%v\n", err)
 		return
 	}
-	fmt.Println(fTemplate)
 	if terminated {
 		return
 	}
@@ -160,7 +158,7 @@ func main() {
 		Level:    "debug",
 	}
 	logCfg.SetConfiguration("go-chef")
-	cfg, err := LoadConfig(templateYml)
+	cfg, err := LoadConfig(fTemplate)
 	if err != nil {
 		log.Fatal(err)
 	}

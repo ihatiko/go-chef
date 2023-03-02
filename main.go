@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"embed"
 	_ "embed"
 	"errors"
 	"fmt"
@@ -141,6 +142,9 @@ func FillEnv(config *Config, data *EnvironmentConfig) *Config {
 
 //go:embed template.yml
 var fTemplate []byte
+
+//go:embed templates
+var templates embed.FS
 
 func main() {
 	envConfig, terminated, err := CommandProcess(os.Args)
@@ -341,7 +345,8 @@ func BuildRootFiles(path string, node *models.RootNode, obj any) {
 
 func BuildFiles(path string, node *models.Node, settings *models.Settings, obj any) {
 	for _, file := range node.GeneratedFiles {
-		b, err := os.ReadFile(fmt.Sprintf("templates/%s.tmpl", file.Template))
+		b, err := templates.ReadFile(fmt.Sprintf("templates/%s.tmpl", file.Template))
+
 		if err != nil {
 			panic(err)
 		}

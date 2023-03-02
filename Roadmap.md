@@ -16,3 +16,5 @@ go-chef cook externalComponent <repositoryPath> --path
 // user
 
 добавить эксрактор домена в сервис
+
+Добавить гитовое наследование компонентов

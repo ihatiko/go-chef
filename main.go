@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	_ "embed"
 	"errors"
 	"fmt"
 	"github.com/go-playground/validator/v10"
@@ -139,12 +140,16 @@ func FillEnv(config *Config, data *EnvironmentConfig) *Config {
 	return config
 }
 
+//go:embed template.yml
+var fTemplate []byte
+
 func main() {
 	envConfig, terminated, err := CommandProcess(os.Args)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return
 	}
+	fmt.Println(fTemplate)
 	if terminated {
 		return
 	}
@@ -155,15 +160,6 @@ func main() {
 		Level:    "debug",
 	}
 	logCfg.SetConfiguration("go-chef")
-	ph, err := os.Executable()
-	if err != nil {
-		log.Fatal(err)
-	}
-	dir, err := os.ReadDir(ph)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(dir)
 	cfg, err := LoadConfig(templateYml)
 	if err != nil {
 		log.Fatal(err)

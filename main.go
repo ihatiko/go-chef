@@ -319,7 +319,7 @@ func BuildNodes(path string, node *models.Node, settings *models.Settings, env a
 
 func BuildRootFiles(path string, node *models.RootNode, obj any) {
 	for _, file := range node.GeneratedFiles {
-		b, err := os.ReadFile(fmt.Sprintf("templates/%s.tmpl", file.Template))
+		b, err := templates.ReadFile(fmt.Sprintf("templates/%s.tmpl", file.Template))
 		if err != nil {
 			panic(err)
 		}

@@ -2,6 +2,7 @@ package {{.Package}}
 
 import (
 	"{{.ProjectName}}/config"
+	featureComponents "{{.ProjectName}}/internal/server/registry/components/feature-components"
 	externalDependencies "{{.ProjectName}}/internal/server/registry/external-dependencies"
 	"context"
 	"github.com/gofiber/fiber/v2"
@@ -30,7 +31,7 @@ func NewServer(config *config.Config, externalDependencies *externalDependencies
 
 func (s *Server) Run() {
 	s.ExternalDependencies.Registry()
-	//s.Registry()
+	featureComponents.Registry()
     s.StartHttpServer()
     s.GracefulShutdown()
 }

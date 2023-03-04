@@ -8,8 +8,14 @@ type Tree struct {
 
 type Settings struct {
 	ExternalComponents []string `yaml:"external-components" mapstructure:"external-components"`
-	ProjectPath        string   `yaml:"project-path" mapstructure:"project-path"`
-	ProjectName        string   `yaml:"project-name" mapstructure:"project-name"`
+	ProjectSettings    *EnvironmentConfig
+}
+type EnvironmentConfig struct {
+	ProjectName string `validate:"required"`
+	ProjectPath string `validate:"required"`
+}
+type Config struct {
+	Tree *Tree
 }
 
 type RootNode struct {

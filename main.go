@@ -1,102 +1,36 @@
 package main
 
 import (
-	"bytes"
-	"embed"
 	_ "embed"
 	"errors"
 	"fmt"
 	"github.com/go-playground/validator/v10"
-	"github.com/iancoleman/strcase"
-	dynamic_struct "github.com/ihatiko/dynamic-struct"
+	"github.com/ihatiko/go-chef/commands/project"
 	"github.com/ihatiko/go-chef/models"
-	"github.com/ihatiko/go-chef/pkg/config"
+	"github.com/ihatiko/go-chef/ui"
 	"github.com/ihatiko/log"
-	"github.com/spf13/viper"
-	"io/fs"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"strings"
-	"text/template"
 )
-
-const (
-	goModTidy = "go mod tidy"
-	goFmt     = "go fmt"
-	goModInit = "go mod init %s"
-)
-const (
-	yml = "yml"
-)
-const (
-	components    = "components"
-	templateYml   = "template.yml"
-	configuration = "config"
-	mainPackage   = "main"
-)
-
-type GolangFile struct {
-	Package string
-	Env     interface{}
-}
-type Config struct {
-	Tree *models.Tree
-}
-
-func LoadConfig(file []byte) (*config.Config, error) {
-	cfg := config.New(viper.New())
-	cfg.AddConfigPath(".")
-	cfg.AutomaticEnv()
-	cfg.SetConfigType(yml)
-	if err := cfg.ReadConfig(bytes.NewReader(file)); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			return nil, errors.New("config file not found")
-		}
-
-		return nil, err
-	}
-
-	return cfg, nil
-}
-func ParseConfig(v *config.Config) (*Config, error) {
-	var c Config
-
-	err := v.Unmarshal(&c)
-	if err != nil {
-		log.Error("unable to decode into struct, %v", err)
-		return nil, err
-	}
-
-	return &c, nil
-}
-
-type ExternalComponent struct {
-	Config          string
-	Constructor     string
-	ObjectName      string
-	LogErrorContent string
-	External        bool
-}
-type EnvironmentConfig struct {
-	ProjectName string `validate:"required"`
-	ProjectPath string `validate:"required"`
-}
 
 var ErrInvalidCommand = errors.New("invalid command. Please use --help to get more info")
 
 const HelpTemplate = `
+	- go-chef
+		interactive ui
+
 	- go-chef cook-project
-		--PROJECT_PATH 
-			a path to the project
-		--PROJECT_NAME
-			project name
+		create project by clean architecture
+			--PROJECT_PATH 
+				a path to the project
+			--PROJECT_NAME
+				project name
 
 	- go-chef --help
-		get a program description
+		get a project description
 `
 
-func FillFlags(args []string, cfg *EnvironmentConfig) *EnvironmentConfig {
+func FillFlags(args []string, cfg *models.EnvironmentConfig) *models.EnvironmentConfig {
 	//TODO сделать нормально
 	for _, arg := range args {
 		formattedArg := strings.Split(arg, "=")
@@ -114,47 +48,37 @@ func FillFlags(args []string, cfg *EnvironmentConfig) *EnvironmentConfig {
 	return cfg
 }
 
-func CommandProcess(args []string) (*EnvironmentConfig, bool, error) {
-	result := &EnvironmentConfig{}
+func CommandProcess(args []string) {
+	if len(args) == 1 {
+		ui.StartUI(CreateProject)
+		return
+	}
 	if len(args) < 2 {
 		fmt.Printf(HelpTemplate)
-		return result, true, nil
 	}
 	//TODO consts and move to new folder
 	switch strings.ToLower(args[1]) {
 	case "cook-project":
-		result = FillFlags(args[1:], result)
-		return result, false, nil
+		CreateProject(args[1:])
 	case "--help":
 		fmt.Printf(HelpTemplate)
-		return result, true, nil
 	default:
-		return result, true, ErrInvalidCommand
+		fmt.Println(ErrInvalidCommand)
 	}
-	return result, true, nil
+	return
 }
-
-func FillEnv(config *Config, data *EnvironmentConfig) *Config {
-	config.Tree.Settings.ProjectPath = data.ProjectPath
-	config.Tree.Settings.ProjectName = data.ProjectName
-	return config
-}
-
-//go:embed template.yml
-var fTemplate []byte
-
-//go:embed templates
-var templates embed.FS
-
-func main() {
-	envConfig, terminated, err := CommandProcess(os.Args)
+func CreateProject(args []string) {
+	createProjectConfig := &models.EnvironmentConfig{}
+	createProjectConfig = FillFlags(args, createProjectConfig)
+	validate := validator.New()
+	err := validate.Struct(createProjectConfig)
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		log.Error(err)
 		return
 	}
-	if terminated {
-		return
-	}
+	project.BuildProjectProgram(createProjectConfig)
+}
+func main() {
 	logCfg := log.Config{
 		Caller:   false,
 		DevMode:  false,
@@ -162,229 +86,5 @@ func main() {
 		Level:    "debug",
 	}
 	logCfg.SetConfiguration("go-chef")
-	cfg, err := LoadConfig(fTemplate)
-	if err != nil {
-		log.Fatal(err)
-	}
-	config, err := ParseConfig(cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	config = FillEnv(config, envConfig)
-	validate := validator.New()
-	err = validate.Struct(envConfig)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	err = Mkdir(err, envConfig)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	/*	cmp := GetExternalComponents(config)
-		FillRequiredComponents(&cmp)*/
-	env := dynamic_struct.ConstructStruct(map[string]any{
-		"Grpc":        false, //TODO
-		"ProjectName": config.Tree.Settings.ProjectName,
-		"ServiceName": strings.ToLower(strcase.ToSnake(config.Tree.Settings.ProjectName)),
-	})
-	BuildTree(config.Tree, env)
-
-	//TODO constants
-	CommandsComposer(config,
-		NewCommand(fmt.Sprintf(goModInit, config.Tree.Settings.ProjectName), true),
-		NewCommand(goFmt, true),
-		NewCommand(goModTidy, false),
-	)
-}
-
-func Mkdir(err error, envConfig *EnvironmentConfig) error {
-	_, err = os.ReadDir(envConfig.ProjectPath)
-	if errors.Is(err, fs.ErrNotExist) {
-		err := os.Mkdir(envConfig.ProjectPath, os.ModePerm)
-		if err != nil {
-			log.Error(err)
-			return err
-		}
-		return nil
-	}
-	return err
-}
-
-func FillRequiredComponents(components *map[string]ExternalComponent) {
-	fmt.Println()
-}
-func GetExternalComponents(config *Config) map[string]ExternalComponent {
-	cpm := make(map[string]ExternalComponent)
-	for _, externalComponent := range config.Tree.Settings.ExternalComponents {
-		files, err := os.ReadDir(filepath.Join(components, externalComponent))
-		if err != nil {
-			panic(err)
-		}
-		if len(files) == 0 {
-			continue
-		}
-		extComponent := ExternalComponent{}
-		for _, file := range files {
-			f, err := os.ReadFile(filepath.Join(components, externalComponent, file.Name()))
-			if err != nil {
-				panic(err)
-			}
-
-			extension := strings.Split(file.Name(), ".")[1]
-			if extension == yml {
-				extComponent.Config = string(f)
-				continue
-			}
-		}
-		extComponent.Constructor =
-			fmt.Sprintf("%s,err := config.%s.NewComponent()",
-				externalComponent,
-				strings.ToTitle(externalComponent),
-			)
-		extComponent.LogErrorContent = GetComponentLogError()
-		cpm[externalComponent] = extComponent
-	}
-
-	return cpm
-}
-
-func GetComponentLogError() string {
-	errMsg := `
-	if err != nil {
-		log.Fatal(err)
-	}
-`
-	return errMsg
-}
-
-type Command struct {
-	cmd         string
-	skipOnError bool
-}
-
-func NewCommand(cmd string, skipOnError bool) Command {
-	return Command{cmd: cmd, skipOnError: skipOnError}
-}
-
-func CommandsComposer(config *Config, commands ...Command) {
-	consoleEnv := "bash"
-	if os.Getenv("GOOS") == "windows" || strings.Contains(strings.ToLower(os.Getenv("OS")), "windows") {
-		consoleEnv = "powershell"
-	}
-	for _, command := range commands {
-		err := ExecCommand(config, command.cmd, consoleEnv)
-		log.Info(command.cmd)
-		if err != nil && !command.skipOnError {
-			log.Error(err)
-			break
-		}
-	}
-}
-func ExecCommand(config *Config, command string, consoleEnv string) error {
-	cmdFolder := exec.Command(consoleEnv, "-c", command)
-	var out bytes.Buffer
-	cmdFolder.Stdin = strings.NewReader("some input")
-	cmdFolder.Stderr = &out
-	cmdFolder.Dir = config.Tree.Settings.ProjectPath
-	cmdFolder.Run()
-	if cmdFolder.ProcessState.ExitCode() > 0 {
-		return errors.New(out.String())
-	}
-	return nil
-}
-
-func BuildTree(tree *models.Tree, env any) {
-	BuildRootFiles(tree.Settings.ProjectPath, tree.RootComponent, env)
-	for _, nd := range tree.RootComponent.Nodes {
-		BuildNodes(tree.Settings.ProjectPath, nd, tree.Settings, env)
-		BuildFiles(tree.Settings.ProjectPath, nd, tree.Settings, env)
-	}
-	for _, nd := range tree.DomainComponents {
-		BuildNodes(tree.Settings.ProjectPath, nd, tree.Settings, env)
-	}
-}
-
-func BuildNodes(path string, node *models.Node, settings *models.Settings, env any) {
-	if len(node.Nodes) > 0 || len(node.GeneratedFiles) > 0 {
-		os.Mkdir(filepath.Join(path, node.Name), os.ModePerm)
-	}
-	for _, nd := range node.Nodes {
-		BuildNodes(filepath.Join(path, node.Name), nd, settings, env)
-		BuildFiles(filepath.Join(path, node.Name), nd, settings, env)
-	}
-}
-
-func BuildRootFiles(path string, node *models.RootNode, obj any) {
-	for _, file := range node.GeneratedFiles {
-		b, err := templates.ReadFile(fmt.Sprintf("templates/%s.tmpl", file.Template))
-		if err != nil {
-			panic(err)
-		}
-		t, err := template.New("").Parse(string(b))
-		fileName := file.Name
-		if file.Extension != "" {
-			fileName = fmt.Sprintf("%s.%s", file.Name, file.Extension)
-		}
-		f, err := os.Create(filepath.Join(path, fileName))
-		if err != nil {
-			panic(err)
-		}
-		obj = dynamic_struct.ReconstructStruct(obj, dynamic_struct.Field{
-			Name:  "Package",
-			Value: mainPackage,
-		})
-		err = t.ExecuteTemplate(f, "", obj)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
-func BuildFiles(path string, node *models.Node, settings *models.Settings, obj any) {
-	for _, file := range node.GeneratedFiles {
-		b, err := templates.ReadFile(fmt.Sprintf("templates/%s.tmpl", file.Template))
-
-		if err != nil {
-			panic(err)
-		}
-		t, err := template.New("").Parse(string(b))
-		p := filepath.Join(path, node.Name, fmt.Sprintf("%s.%s", file.Name, file.Extension))
-		f, err := os.Create(p)
-		if err != nil {
-			panic(err)
-		}
-		obj = dynamic_struct.ReconstructStruct(obj, dynamic_struct.Field{
-			Name:  "Package",
-			Value: strings.Replace(node.Name, "-", "_", 1),
-		})
-		obj = FillRootSettings(file, settings, obj)
-		err = t.ExecuteTemplate(f, "", obj)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
-func FillRootSettings(file models.GeneratedFile, settings *models.Settings, obj any) any {
-	if file.Name == configuration && file.Extension == yml {
-		var configYamlData []string
-		/*		for _, ext := range settings.ExternalComponents {
-				//TODO перейти на систему динамических модулей
-				if ext == "log" {
-					b, err := os.ReadFile(fmt.Sprintf("components/%s/%s", ext, "config.yml"))
-					if err != nil {
-						panic(err)
-					}
-					configYamlData = append(configYamlData, fmt.Sprintf("%s\n", string(b)))
-				}
-			}*/
-		obj = dynamic_struct.ReconstructStruct(obj, dynamic_struct.Field{
-			Name:  "LogFile",
-			Value: configYamlData,
-		})
-	}
-	return obj
+	CommandProcess(os.Args)
 }

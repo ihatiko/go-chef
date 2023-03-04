@@ -4,8 +4,6 @@ tree:
   settings:
     project-path: C:\Users\user\GolandProjects\example
     project-name: example
-    external-components:
-      - log
   root-component:
     generated-files:
       - name: main

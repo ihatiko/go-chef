@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ihatiko/go-chef/constants"
 )
 
 type (
@@ -31,9 +32,10 @@ type CreateProjectModel struct {
 	focused               int
 	err                   error
 	FilledInputProcessing func(args []string)
+	titleStyle            lipgloss.Style
 }
 
-func InitialModel(filledInputProcessing func(args []string)) *CreateProjectModel {
+func InitialModel(filledInputProcessing func(args []string), titleStyle lipgloss.Style) *CreateProjectModel {
 	var inputs = make([]textinput.Model, 2)
 	inputs[projectName] = textinput.New()
 	inputs[projectName].Placeholder = "awesomeProject1"
@@ -53,6 +55,7 @@ func InitialModel(filledInputProcessing func(args []string)) *CreateProjectModel
 		focused:               0,
 		err:                   nil,
 		FilledInputProcessing: filledInputProcessing,
+		titleStyle:            titleStyle,
 	}
 }
 
@@ -68,7 +71,6 @@ func (m *CreateProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyEnter:
 			if m.focused == len(m.inputs)-1 {
-				fmt.Println("Success")
 				var values []string
 				values = append(values, fmt.Sprintf("--project_path=%s", m.inputs[projectPath].Value()))
 				values = append(values, fmt.Sprintf("--project_name=%s", m.inputs[projectName].Value()))
@@ -104,6 +106,8 @@ func (m *CreateProjectModel) View() string {
 	return fmt.Sprintf(
 		`
  %s
+
+ %s
  %s
 
  %s  
@@ -111,6 +115,7 @@ func (m *CreateProjectModel) View() string {
 
  %s  
 `,
+		m.titleStyle.Render(constants.ProjectTitle),
 		inputStyle.Width(30).Render("Project name"),
 		m.inputs[projectName].View(),
 		inputStyle.Width(30).Render("Project path"),

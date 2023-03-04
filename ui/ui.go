@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"github.com/ihatiko/go-chef/constants"
 	build_project_ui "github.com/ihatiko/go-chef/ui/build-project"
 	"io"
 	"os"
@@ -71,14 +72,15 @@ func Init(createProjectFunc func(args []string)) *BaseProgramModel {
 	const defaultWidth = 200
 
 	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
-	l.Title = "Go Chef golang template generator"
+	l.Title = constants.ProjectTitle
+
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.Styles.PaginationStyle = paginationStyle
 	l.Styles.HelpStyle = helpStyle
 	l.Styles.Title.Background(lipgloss.Color("170")).Bold(true)
 	m := &BaseProgramModel{list: l, choice: Main, Windows: map[Category]tea.Model{
-		Project: build_project_ui.InitialModel(createProjectFunc),
+		Project: build_project_ui.InitialModel(createProjectFunc, l.Styles.Title),
 	}}
 	return m
 }

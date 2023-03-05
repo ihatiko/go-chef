@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"embed"
 	_ "embed"
 	"errors"
 	"fmt"
@@ -10,6 +12,7 @@ import (
 	"github.com/ihatiko/go-chef/ui"
 	"github.com/ihatiko/log"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -29,18 +32,42 @@ const HelpTemplate = `
 	- go-chef --help
 		get a project description
 `
+const (
+	PROJECT_PATH = "PROJECT_PATH"
+	PROJECT_NAME = "PROJECT_NAME"
+)
 
-func FillFlags(args []string, cfg *models.EnvironmentConfig) *models.EnvironmentConfig {
+func FillEnvironment(args []string, cfg *models.EnvironmentConfig) *models.EnvironmentConfig {
 	//TODO сделать нормально
 	for _, arg := range args {
+		arg = strings.Replace(arg, "--", "", 1)
 		formattedArg := strings.Split(arg, "=")
 		if len(formattedArg) < 1 {
 			continue
 		}
 		switch strings.ToUpper(formattedArg[0]) {
-		case "--PROJECT_PATH":
+		case PROJECT_PATH:
 			cfg.ProjectPath = formattedArg[1]
-		case "--PROJECT_NAME":
+		case PROJECT_NAME:
+			cfg.ProjectName = formattedArg[1]
+		}
+
+	}
+	return cfg
+}
+
+func FillFlags(args []string, cfg *models.EnvironmentConfig) *models.EnvironmentConfig {
+	//TODO сделать нормально
+	for _, arg := range args {
+		arg = strings.Replace(arg, "--", "", 1)
+		formattedArg := strings.Split(arg, "=")
+		if len(formattedArg) < 1 {
+			continue
+		}
+		switch strings.ToUpper(formattedArg[0]) {
+		case "PROJECT_PATH":
+			cfg.ProjectPath = formattedArg[1]
+		case "PROJECT_NAME":
 			cfg.ProjectName = formattedArg[1]
 		}
 
@@ -86,5 +113,77 @@ func main() {
 		Level:    "debug",
 	}
 	logCfg.SetConfiguration("go-chef")
-	CommandProcess(os.Args)
+	//CommandProcess(os.Args)
+	path := `C:\testProject`
+	domainName := "test-domain"
+	packageName := strings.ReplaceAll(domainName, "-", "_")
+	projectName, err := gerProjectName(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	dirs, err := os.ReadDir(filepath.Join(path, "internal"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !checkDir(dirs, "server") {
+		log.Fatal("folder server does not exist")
+	}
+	if err := upsertFeaturesFolder(dirs, path); err != nil {
+		log.Fatal(err)
+	}
+	dirs, err = os.ReadDir(filepath.Join(path, "internal/features"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	if findDomain(dirs, domainName) {
+		return
+	}
+	err = os.Mkdir(filepath.Join(path, "internal/features", domainName), os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(packageName, projectName)
+}
+
+func findDomain(dirs []os.DirEntry, data string) bool {
+	for _, dir := range dirs {
+		if dir.Name() == data {
+			return true
+		}
+	}
+
+	return false
+}
+
+func upsertFeaturesFolder(dirs []os.DirEntry, path string) error {
+	if !checkDir(dirs, "features") {
+		return os.Mkdir(filepath.Join(path, "internal/features"), os.ModePerm)
+	}
+	return nil
+}
+func checkDir(dirs []os.DirEntry, name string) bool {
+	for _, dir := range dirs {
+		if dir.Name() == name {
+			return true
+		}
+	}
+	return false
+}
+
+//go:embed domain
+var templates embed.FS
+
+func gerProjectName(path string) (string, error) {
+	combinedPath := filepath.Join(path, "go.mod")
+	f, err := os.Open(combinedPath)
+	if err != nil {
+		return "", err
+	}
+	reader := bufio.NewReader(f)
+	line, _, err := reader.ReadLine()
+	if err != nil {
+		return "", err
+	}
+	projectName := strings.Replace(string(line), "module ", "", 1)
+	return projectName, nil
 }

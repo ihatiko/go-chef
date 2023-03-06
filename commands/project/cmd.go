@@ -29,8 +29,6 @@ const (
 )
 
 const (
-	components    = "components"
-	templateYml   = "template.yml"
 	configuration = "config"
 	mainPackage   = "main"
 )

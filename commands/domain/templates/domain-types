@@ -1,0 +1,19 @@
+package types
+
+type Create{{.FragmentName}}Request struct {
+}
+
+type Update{{.FragmentName}}Request struct {
+}
+
+type Delete{{.FragmentName}}Request struct {
+}
+
+type Create{{.FragmentName}}Response struct {
+}
+
+type Update{{.FragmentName}}Response struct {
+}
+
+type Delete{{.FragmentName}}Response struct {
+}

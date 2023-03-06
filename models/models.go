@@ -9,6 +9,9 @@ type Tree struct {
 type Settings struct {
 	ExternalComponents []string `yaml:"external-components" mapstructure:"external-components"`
 	ProjectSettings    *EnvironmentConfig
+	DomainSettings     *DomainConfig
+}
+type DomainConfig struct {
 }
 type EnvironmentConfig struct {
 	ProjectName string `validate:"required"`

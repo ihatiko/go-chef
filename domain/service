@@ -1,7 +1,0 @@
-package {{.DomainName}}
-
-type Service interface {
-    Create{{.DomainName}}(context.Context) error
-    Update{{.DomainName}}(context.Context) error
-    Delete{{.DomainName}}(context.Context) error
-}

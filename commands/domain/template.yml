@@ -1,0 +1,17 @@
+tree:
+  domain-components:
+    name: internal
+    nodes:
+      - name: features
+        nodes:
+          - name: {{.DomainName}}
+            generated-files:
+              - name: repository
+                extension: go
+                template: repository
+              - name: service
+                extension: go
+                template: service
+              - name: transport
+                extension: go
+                template: transport

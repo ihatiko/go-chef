@@ -1,0 +1,7 @@
+package {{.DomainName}}
+
+type Service interface {
+    Create{{.FragmentName}}(context.Context) error
+    Update{{.FragmentName}}(context.Context) error
+    Delete{{.FragmentName}}(context.Context) error
+}

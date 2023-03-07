@@ -12,6 +12,8 @@ type Settings struct {
 	DomainSettings     *DomainConfig
 }
 type DomainConfig struct {
+	ProjectPath string `validate:"required"`
+	ProjectName string `validate:"required"`
 }
 type EnvironmentConfig struct {
 	ProjectName string `validate:"required"`

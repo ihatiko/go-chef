@@ -1,1 +1,27 @@
 package service
+
+import (
+    "context"
+    {{.CapitalizeFormattedFragmentName}} "{{.ProjectName}}/internal/features/{{.DomainName}}"
+    "{{.ProjectName}}/internal/features/{{.DomainName}}/types"
+)
+
+type {{.FormattedFragmentName}}Service struct {
+	Repository {{.CapitalizeFormattedFragmentName}}.Repository
+}
+
+func New{{.FormattedFragmentName}}Service(repository {{.CapitalizeFormattedFragmentName}}.Repository) *{{.FormattedFragmentName}}Service {
+	return &{{.FormattedFragmentName}}Service{Repository: repository}
+}
+
+func (s {{.FormattedFragmentName}}Service) Create{{.FormattedFragmentName}}(context.Context, types.Create{{.FormattedFragmentName}}Request) (types.Create{{.FormattedFragmentName}}Request, error) {
+
+}
+
+func (s {{.FormattedFragmentName}}Service) Update{{.FormattedFragmentName}}(context.Context, types.Update{{.FormattedFragmentName}}Request) (types.Update{{.FormattedFragmentName}}Request, error) {
+
+}
+
+func (s {{.FormattedFragmentName}}Service) Delete{{.FormattedFragmentName}}(context.Context, types.Delete{{.FormattedFragmentName}}Request) (types.Delete{{.FormattedFragmentName}}Request, error) {
+
+}

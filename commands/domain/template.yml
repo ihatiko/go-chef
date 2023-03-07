@@ -12,6 +12,17 @@ tree:
               - name: service
                 extension: go
                 template: service
-              - name: transport
+              - name: transport!
                 extension: go
                 template: transport
+            nodes:
+              - name: types
+                generated-files:
+                  name: types
+                  extension: go
+                  template: domain-types
+              - name: service
+                generated-files:
+                  name: service
+                  extension: go
+                  template: domain-service

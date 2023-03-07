@@ -24,16 +24,20 @@ var config []byte
 
 func BuildDomain(args []string) {
 	path := `C:\testProject`
-	domainName := "test-domain"
+	domainName := strings.ToLower("test-domain")
 	packageName := strings.ReplaceAll(domainName, "-", "_")
 	formattedFragmentName := toFragmentName(domainName)
 	projectName, err := gerProjectName(path)
 	if err != nil {
 		log.Fatal(err)
 	}
+	capitalizeFragment := fmt.Sprintf("%s%s", strings.ToLower(string(formattedFragmentName[0])), formattedFragmentName[1:])
 	env := dynamic_struct.ConstructStruct(map[string]any{
-		"DomainName":   packageName, //TODO
-		"FragmentName": formattedFragmentName,
+		"PackageName":                     packageName,
+		"FormattedFragmentName":           formattedFragmentName,
+		"CapitalizeFormattedFragmentName": capitalizeFragment,
+		"DomainName":                      domainName,
+		"ProjectName":                     projectName,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -55,10 +59,10 @@ func BuildDomain(args []string) {
 	if findDomain(dirs, domainName) {
 		return
 	}
-	//err = os.Mkdir(filepath.Join(path, "internal/features", domainName), os.ModePerm)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
+	err = os.Mkdir(filepath.Join(path, "internal/features", domainName), os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	t, err := template.New("").Parse(string(config))
 	if err != nil {
@@ -74,7 +78,7 @@ func BuildDomain(args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(t, env, projectName)
+
 	viperCfg, err := config_parser.LoadConfig(buffer.Bytes())
 	if err != nil {
 		log.Fatal(err)
@@ -83,12 +87,19 @@ func BuildDomain(args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	cfg.Tree.Settings = &models.Settings{
+		DomainSettings: &models.DomainConfig{
+			ProjectPath: path,
+			ProjectName: projectName,
+		},
+	}
+	BuildTree(cfg.Tree, env)
 	fmt.Println(cfg)
 }
 
 func BuildFiles(path string, node *models.Node, obj any) {
 	for _, file := range node.GeneratedFiles {
-		b, err := templates.ReadFile(fmt.Sprintf("templates/%s.tmpl", file.Template))
+		b, err := templates.ReadFile(fmt.Sprintf("templates/%s", file.Template))
 
 		if err != nil {
 			panic(err)
@@ -106,35 +117,9 @@ func BuildFiles(path string, node *models.Node, obj any) {
 	}
 }
 
-func BuildRootFiles(path string, node *models.RootNode, obj any) {
-	for _, file := range node.GeneratedFiles {
-		b, err := templates.ReadFile(fmt.Sprintf("templates/%s.tmpl", file.Template))
-		if err != nil {
-			panic(err)
-		}
-		t, err := template.New("").Parse(string(b))
-		fileName := file.Name
-		if file.Extension != "" {
-			fileName = fmt.Sprintf("%s.%s", file.Name, file.Extension)
-		}
-		f, err := os.Create(filepath.Join(path, fileName))
-		if err != nil {
-			panic(err)
-		}
-		err = t.ExecuteTemplate(f, "", obj)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
 func BuildTree(tree *models.Tree, env any) {
-	BuildRootFiles(tree.Settings.ProjectSettings.ProjectPath, tree.RootComponent, env)
-	for _, nd := range tree.RootComponent.Nodes {
-		BuildNodes(tree.Settings.ProjectSettings.ProjectPath, nd, env)
-		BuildFiles(tree.Settings.ProjectSettings.ProjectPath, nd, env)
-	}
 	for _, nd := range tree.DomainComponents {
-		BuildNodes(tree.Settings.ProjectSettings.ProjectPath, nd, env)
+		BuildNodes(tree.Settings.DomainSettings.ProjectPath, nd, env)
 	}
 }
 

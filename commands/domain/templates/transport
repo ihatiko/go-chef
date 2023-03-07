@@ -1,7 +1,12 @@
-package {{.DomainName}}
+package {{.PackageName}}
+
+import(
+    "context"
+    "{{.ProjectName}}/internal/features/{{.DomainName}}/types"
+)
 
 type Handler interface {
-    Create{{.FragmentName}}(context.Context) error
-    Update{{.FragmentName}}(context.Context) error
-    Delete{{.FragmentName}}(context.Context) error
+    Create{{.FormattedFragmentName}}(context.Context, types.Create{{.FormattedFragmentName}}Request) (types.Create{{.FormattedFragmentName}}Request, error)
+    Update{{.FormattedFragmentName}}(context.Context, types.Update{{.FormattedFragmentName}}Request) (types.Update{{.FormattedFragmentName}}Request, error)
+    Delete{{.FormattedFragmentName}}(context.Context, types.Delete{{.FormattedFragmentName}}Request) (types.Delete{{.FormattedFragmentName}}Request, error)
 }

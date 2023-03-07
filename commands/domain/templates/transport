@@ -6,6 +6,7 @@ import(
 
 type Handler interface {
     Create{{.FormattedFragmentName}}(fiber.Ctx) error
+    Read{{.FormattedFragmentName}}(fiber.Ctx) error
     Update{{.FormattedFragmentName}}(fiber.Ctx) error
     Delete{{.FormattedFragmentName}}(fiber.Ctx) error
 }

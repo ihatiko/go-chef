@@ -3,6 +3,9 @@ package types
 type Create{{.FormattedFragmentName}}Request struct {
 }
 
+type Read{{.FormattedFragmentName}}Request struct {
+}
+
 type Update{{.FormattedFragmentName}}Request struct {
 }
 
@@ -10,6 +13,9 @@ type Delete{{.FormattedFragmentName}}Request struct {
 }
 
 type Create{{.FormattedFragmentName}}Response struct {
+}
+
+type Read{{.FormattedFragmentName}}Response struct {
 }
 
 type Update{{.FormattedFragmentName}}Response struct {

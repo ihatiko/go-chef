@@ -21,6 +21,12 @@ func (s {{.FormattedFragmentName}}Service) Create{{.FormattedFragmentName}}(ctx 
 	return s.Repository.Create{{.FormattedFragmentName}}(spanCtx, request)
 }
 
+func (s {{.FormattedFragmentName}}Service) Read{{.FormattedFragmentName}}(ctx context.Context, request types.Read{{.FormattedFragmentName}}Request) (types.Read{{.FormattedFragmentName}}Request, error) {
+	span, spanCtx := opentracing.StartSpanFromContext(ctx, read{{.FormattedFragmentName}}Span)
+	defer span.Finish()
+	return s.Repository.Read{{.FormattedFragmentName}}(spanCtx, request)
+}
+
 func (s {{.FormattedFragmentName}}Service) Update{{.FormattedFragmentName}}(ctx context.Context, request types.Update{{.FormattedFragmentName}}Request) (types.Update{{.FormattedFragmentName}}Request, error) {
 	span, spanCtx := opentracing.StartSpanFromContext(ctx, update{{.FormattedFragmentName}}Span)
 	defer span.Finish()

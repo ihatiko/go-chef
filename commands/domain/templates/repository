@@ -7,6 +7,7 @@ import(
 
 type Repository interface {
     Create{{.FormattedFragmentName}}(context.Context, types.Create{{.FormattedFragmentName}}Request) (types.Create{{.FormattedFragmentName}}Request, error)
+    Read{{.FormattedFragmentName}}(context.Context, types.Read{{.FormattedFragmentName}}Request) (types.Read{{.FormattedFragmentName}}Request, error)
     Update{{.FormattedFragmentName}}(context.Context, types.Update{{.FormattedFragmentName}}Request) (types.Update{{.FormattedFragmentName}}Request, error)
     Delete{{.FormattedFragmentName}}(context.Context, types.Delete{{.FormattedFragmentName}}Request) (types.Delete{{.FormattedFragmentName}}Request, error)
 }

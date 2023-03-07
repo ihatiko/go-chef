@@ -4,18 +4,23 @@ type {{.FormattedFragmentName}}Repository struct {
 
 }
 
-func (r *{{.FormattedFragmentName}}Repository) Create{{.FormattedFragmentName}}(ctx context.Context, data types.Create{{.FormattedFragmentName}}Request) (types.Create{{.FormattedFragmentName}}Request, error) {
+func (r {{.FormattedFragmentName}}Repository) Create{{.FormattedFragmentName}}(ctx context.Context, data types.Create{{.FormattedFragmentName}}Request) (types.Create{{.FormattedFragmentName}}Request, error) {
 	span, _ := opentracing.StartSpanFromContext(ctx, createGrayCatsSpan)
 	defer span.Finish()
 	return types.CreateGrayCatsRequest{}, nil
 }
-func (r *{{.FormattedFragmentName}}Repository) Update{{.FormattedFragmentName}}(ctx context.Context, data types.Update{{.FormattedFragmentName}}Request) (types.Update{{.FormattedFragmentName}}Request, error) {
-	span, _ := opentracing.StartSpanFromContext(ctx, createGrayCatsSpan)
+func (r {{.FormattedFragmentName}}Repository) Read{{.FormattedFragmentName}}(ctx context.Context, data types.Read{{.FormattedFragmentName}}Request) (types.Read{{.FormattedFragmentName}}Request, error) {
+	span, _ := opentracing.StartSpanFromContext(ctx, create{{.FormattedFragmentName}}Span)
+	defer span.Finish()
+	return types.CreateGrayCatsRequest{}, nil
+}
+func (r {{.FormattedFragmentName}}Repository) Update{{.FormattedFragmentName}}(ctx context.Context, data types.Update{{.FormattedFragmentName}}Request) (types.Update{{.FormattedFragmentName}}Request, error) {
+	span, _ := opentracing.StartSpanFromContext(ctx, create{{.FormattedFragmentName}}Span)
 	defer span.Finish()
 	return types.UpdateGrayCatsRequest{}, nil
 }
-func (r *{{.FormattedFragmentName}}Repository) Delete{{.FormattedFragmentName}}(ctx context.Context, data types.Delete{{.FormattedFragmentName}}Request) (types.Delete{{.FormattedFragmentName}}Request, error) {
-	span, _ := opentracing.StartSpanFromContext(ctx, createGrayCatsSpan)
+func (r {{.FormattedFragmentName}}Repository) Delete{{.FormattedFragmentName}}(ctx context.Context, data types.Delete{{.FormattedFragmentName}}Request) (types.Delete{{.FormattedFragmentName}}Request, error) {
+	span, _ := opentracing.StartSpanFromContext(ctx, create{{.FormattedFragmentName}}Span)
 	defer span.Finish()
 	return types.DeleteGrayCatsRequest{}, nil
 }

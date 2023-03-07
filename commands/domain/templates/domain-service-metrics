@@ -2,6 +2,7 @@ package service
 
 const (
     create{{.FormattedFragmentName}}Span = "{{.FormattedFragmentName}}Service.Create{{.FormattedFragmentName}}"
+    read{{.FormattedFragmentName}}Span   = "{{.FormattedFragmentName}}Service.Read{{.FormattedFragmentName}}"
     delete{{.FormattedFragmentName}}Span = "{{.FormattedFragmentName}}Service.Delete{{.FormattedFragmentName}}"
     update{{.FormattedFragmentName}}Span = "{{.FormattedFragmentName}}Service.Update{{.FormattedFragmentName}}"
 )

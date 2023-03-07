@@ -5,6 +5,7 @@ import (
 	"{{.ProjectName}}/internal/server"
     "{{.ProjectName}}/internal/server/registry/external-dependencies"
     "github.com/ihatiko/config"
+    "github.com/ihatiko/tracer"
 )
 
 const (
@@ -17,7 +18,11 @@ func Run() {
 		panic(err)
 	}
     cfg.Log.SetConfiguration(cfg.Server.Name)
-
+	tracer, err := cfg.Jaeger.NewTracer(cfg.Server.Name)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer tracer.Closer.Close()
     server := server.NewServer(
     	cfg,
     	external_dependencies.NewExternalDependencies(

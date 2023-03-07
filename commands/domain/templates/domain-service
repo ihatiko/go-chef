@@ -2,6 +2,7 @@ package service
 
 import (
     "context"
+    "github.com/opentracing/opentracing-go"
     {{.CapitalizeFormattedFragmentName}} "{{.ProjectName}}/internal/features/{{.DomainName}}"
     "{{.ProjectName}}/internal/features/{{.DomainName}}/types"
 )
@@ -14,14 +15,20 @@ func New{{.FormattedFragmentName}}Service(repository {{.CapitalizeFormattedFragm
 	return &{{.FormattedFragmentName}}Service{Repository: repository}
 }
 
-func (s {{.FormattedFragmentName}}Service) Create{{.FormattedFragmentName}}(context.Context, types.Create{{.FormattedFragmentName}}Request) (types.Create{{.FormattedFragmentName}}Request, error) {
-
+func (s {{.FormattedFragmentName}}Service) Create{{.FormattedFragmentName}}(ctx context.Context, request types.Create{{.FormattedFragmentName}}Request) (types.Create{{.FormattedFragmentName}}Request, error) {
+	span, spanCtx := opentracing.StartSpanFromContext(ctx, create{{.FormattedFragmentName}}Span)
+	defer span.Finish()
+	return s.Repository.Create{{.FormattedFragmentName}}(spanCtx, request)
 }
 
-func (s {{.FormattedFragmentName}}Service) Update{{.FormattedFragmentName}}(context.Context, types.Update{{.FormattedFragmentName}}Request) (types.Update{{.FormattedFragmentName}}Request, error) {
-
+func (s {{.FormattedFragmentName}}Service) Update{{.FormattedFragmentName}}(ctx context.Context, request types.Update{{.FormattedFragmentName}}Request) (types.Update{{.FormattedFragmentName}}Request, error) {
+	span, spanCtx := opentracing.StartSpanFromContext(ctx, update{{.FormattedFragmentName}}Span)
+	defer span.Finish()
+	return s.Repository.Update{{.FormattedFragmentName}}(spanCtx, request)
 }
 
-func (s {{.FormattedFragmentName}}Service) Delete{{.FormattedFragmentName}}(context.Context, types.Delete{{.FormattedFragmentName}}Request) (types.Delete{{.FormattedFragmentName}}Request, error) {
-
+func (s {{.FormattedFragmentName}}Service) Delete{{.FormattedFragmentName}}(ctx context.Context, request types.Delete{{.FormattedFragmentName}}Request) (types.Delete{{.FormattedFragmentName}}Request, error) {
+	span, spanCtx := opentracing.StartSpanFromContext(ctx, delete{{.FormattedFragmentName}}Span)
+	defer span.Finish()
+	return s.Repository.Delete{{.FormattedFragmentName}}(spanCtx, request)
 }

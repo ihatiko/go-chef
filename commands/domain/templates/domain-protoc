@@ -1,34 +1,34 @@
 syntax = "proto3";
 
-package {{.DomainName}}.payment.v1;
-option go_package = ".;{{.DomainName}}";
+package {{.PackageName}}.v1;
+option go_package = ".;{{.PackageName}}";
 
-service {{.DomainName}}Service {
-  rpc MakePayment(Create{{.FragmentName}}Request) returns (Create{{.FragmentName}}Response);
-  rpc MakePayment(Update{{.FragmentName}}Request) returns (Update{{.FragmentName}}Response);
-  rpc MakePayment(Delete{{.FragmentName}}Request) returns (Delete{{.FragmentName}}Response);
+service {{.FormattedFragmentName}}Service {
+  rpc Create{{.FormattedFragmentName}}(Create{{.FormattedFragmentName}}Request) returns (Create{{.FormattedFragmentName}}Response);
+  rpc Update{{.FormattedFragmentName}}(Update{{.FormattedFragmentName}}Request) returns (Update{{.FormattedFragmentName}}Response);
+  rpc Delete{{.FormattedFragmentName}}(Delete{{.FormattedFragmentName}}Request) returns (Delete{{.FormattedFragmentName}}Response);
 }
 
-message Create{{.FragmentName}}Request {
-
+message Create{{.FormattedFragmentName}}Request {
+    int id = 1
 }
 
-message Update{{.FragmentName}}Request {
-
+message Update{{.FormattedFragmentName}}Request {
+    int id = 1
 }
 
-message Delete{{.FragmentName}}Request {
-
+message Delete{{.FormattedFragmentName}}Request {
+    int id = 1
 }
 
-message Create{{.FragmentName}}Response {
-
-}
-
-message Update{{.FragmentName}}Response {
+message Create{{.FormattedFragmentName}}Response {
 
 }
 
-message Delete{{.FragmentName}}Response {
+message Update{{.FormattedFragmentName}}Response {
+
+}
+
+message Delete{{.FormattedFragmentName}}Response {
 
 }

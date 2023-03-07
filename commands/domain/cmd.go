@@ -24,7 +24,7 @@ var config []byte
 
 func BuildDomain(args []string) {
 	path := `C:\testProject`
-	domainName := strings.ToLower("test-domain")
+	domainName := strings.ToLower("gray-cats")
 	packageName := strings.ReplaceAll(domainName, "-", "_")
 	formattedFragmentName := toFragmentName(domainName)
 	projectName, err := gerProjectName(path)
@@ -38,7 +38,11 @@ func BuildDomain(args []string) {
 		"CapitalizeFormattedFragmentName": capitalizeFragment,
 		"DomainName":                      domainName,
 		"ProjectName":                     projectName,
+		"OpenApiTransport":                true,
+		"GrpcTransport":                   true,
+		"DiBinding":                       false,
 	})
+	//TODO GrpcTransport compile
 	if err != nil {
 		log.Fatal(err)
 	}

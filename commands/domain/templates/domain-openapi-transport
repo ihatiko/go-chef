@@ -1,0 +1,86 @@
+package open_api
+
+import (
+	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2"
+	"github.com/ihatiko/log"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/opentracing/opentracing-go"
+	"net/http"
+	{{.CapitalizeFormattedFragmentName}} "test1/internal/features/{{.DomainName}}"
+	"{{.ProjectName}}/internal/features/{{.DomainName}}/types"
+)
+
+type {{.FormattedFragmentName}}OpenApiHandler struct {
+	service {{.CapitalizeFormattedFragmentName}}.Service
+}
+
+func (h {{.FormattedFragmentName}}OpenApiHandler) Create{{.FormattedFragmentName}}(ctx fiber.Ctx) error {
+	span, spanCtx := opentracing.StartSpanFromContext(ctx.Context(), create{{.FormattedFragmentName}}Span)
+	defer span.Finish()
+
+	request := types.Create{{.FormattedFragmentName}}Request{}
+	err := jsoniter.Unmarshal(ctx.Body(), &request)
+	if err != nil {
+		log.WarnF("jsoniter.Unmarshal %s", string(ctx.Body()))
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+	validate := validator.New()
+	err = validate.Struct(request)
+	if err != nil {
+		log.WarnF("validate.Struct %s", string(ctx.Body()))
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+	data, err := h.service.Create{{.FormattedFragmentName}}(spanCtx, request)
+	if err != nil {
+		log.Error(err)
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+	return ctx.JSON(data)
+}
+func (h {{.FormattedFragmentName}}OpenApiHandler) UpdateTestDomain(ctx fiber.Ctx) error {
+	span, spanCtx := opentracing.StartSpanFromContext(ctx.Context(), update{{.FormattedFragmentName}}Span)
+	defer span.Finish()
+
+    request := types.Update{{.FormattedFragmentName}}Request{}
+    err := jsoniter.Unmarshal(ctx.Body(), &request)
+    if err != nil {
+    	log.WarnF("jsoniter.Unmarshal %s", string(ctx.Body()))
+    	return ctx.SendStatus(http.StatusBadRequest)
+    }
+	validate := validator.New()
+	err = validate.Struct(request)
+	if err != nil {
+		log.WarnF("validate.Struct %s", string(ctx.Body()))
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+    data, err := h.service.Update{{.FormattedFragmentName}}(spanCtx, request)
+    if err != nil {
+    	log.Error(err)
+    	return ctx.SendStatus(http.StatusInternalServerError)
+    }
+    return ctx.JSON(data)
+}
+func (h {{.FormattedFragmentName}}OpenApiHandler) DeleteTestDomain(ctx fiber.Ctx) error {
+	span, spanCtx := opentracing.StartSpanFromContext(ctx.Context(), delete{{.FormattedFragmentName}}Span)
+	defer span.Finish()
+
+	request := types.Delete{{.FormattedFragmentName}}Request{}
+	err := jsoniter.Unmarshal(ctx.Body(), &request)
+	if err != nil {
+		log.WarnF("jsoniter.Unmarshal %s", string(ctx.Body()))
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+	validate := validator.New()
+	err = validate.Struct(request)
+	if err != nil {
+		log.WarnF("validate.Struct %s", string(ctx.Body()))
+		return ctx.SendStatus(http.StatusBadRequest)
+	}
+	data, err := h.service.Delete{{.FormattedFragmentName}}(spanCtx, request)
+	if err != nil {
+		log.Error(err)
+		return ctx.SendStatus(http.StatusInternalServerError)
+	}
+	return ctx.JSON(data)
+}

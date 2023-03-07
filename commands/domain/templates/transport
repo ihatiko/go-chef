@@ -1,12 +1,11 @@
 package {{.PackageName}}
 
 import(
-    "context"
-    "{{.ProjectName}}/internal/features/{{.DomainName}}/types"
+	"github.com/gofiber/fiber/v2"
 )
 
 type Handler interface {
-    Create{{.FormattedFragmentName}}(context.Context, types.Create{{.FormattedFragmentName}}Request) (types.Create{{.FormattedFragmentName}}Request, error)
-    Update{{.FormattedFragmentName}}(context.Context, types.Update{{.FormattedFragmentName}}Request) (types.Update{{.FormattedFragmentName}}Request, error)
-    Delete{{.FormattedFragmentName}}(context.Context, types.Delete{{.FormattedFragmentName}}Request) (types.Delete{{.FormattedFragmentName}}Request, error)
+    Create{{.FormattedFragmentName}}(fiber.Ctx) error
+    Update{{.FormattedFragmentName}}(fiber.Ctx) error
+    Delete{{.FormattedFragmentName}}(fiber.Ctx) error
 }

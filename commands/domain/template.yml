@@ -1,28 +1,64 @@
 tree:
   domain-components:
-    name: internal
-    nodes:
-      - name: features
-        nodes:
-          - name: {{.DomainName}}
-            generated-files:
-              - name: repository
-                extension: go
-                template: repository
-              - name: service
-                extension: go
-                template: service
-              - name: transport!
-                extension: go
-                template: transport
-            nodes:
-              - name: types
-                generated-files:
-                  name: types
+    {{- if .GrpcTransport }}
+    - name: protoc
+      nodes:
+        - name: {{.DomainName}}
+          generated-files:
+            - name: {{.DomainName}}
+              extension: proto
+              template: domain-protoc
+    {{end}}
+    - name: internal
+      nodes:
+        - name: features
+          nodes:
+            - name: {{.DomainName}}
+              generated-files:
+                - name: repository
                   extension: go
-                  template: domain-types
-              - name: service
-                generated-files:
-                  name: service
+                  template: repository
+                - name: service
                   extension: go
-                  template: domain-service
+                  template: service
+                - name: transport
+                  extension: go
+                  template: transport
+              nodes:
+                - name: repository
+                  generated-files:
+                    name: repository
+                    extension: go
+                    template: domain-repository
+                - name: types
+                  generated-files:
+                    name: types
+                    extension: go
+                    template: domain-types
+                - name: service
+                  generated-files:
+                    - name: service
+                      extension: go
+                      template: domain-service
+                    - name: metrics
+                      extension: go
+                      template: domain-service-metrics
+                - name: transport
+                  nodes:
+                    {{- if .OpenApiTransport }}
+                    - name: open-api
+                      generated-files:
+                        - name: handler
+                          extension: go
+                          template: domain-openapi-transport
+                        - name: metrics
+                          extension: go
+                          template: domain-openapi-metrics-transport
+                    {{end}}
+                    {{- if .GrpcTransport }}
+                    - name: grpc
+                      generated-files:
+                        name: handler
+                        extension: go
+                        template: domain-grpc-transport
+                    {{end}}

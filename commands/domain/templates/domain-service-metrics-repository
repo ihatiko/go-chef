@@ -1,0 +1,7 @@
+package service
+
+const (
+    create{{.FormattedFragmentName}}Span = "{{.FormattedFragmentName}}Repository.Create{{.FormattedFragmentName}}"
+    delete{{.FormattedFragmentName}}Span = "{{.FormattedFragmentName}}Repository.Delete{{.FormattedFragmentName}}"
+    update{{.FormattedFragmentName}}Span = "{{.FormattedFragmentName}}Repository.Update{{.FormattedFragmentName}}"
+)

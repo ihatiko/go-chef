@@ -10,15 +10,15 @@ service {{.FormattedFragmentName}}Service {
 }
 
 message Create{{.FormattedFragmentName}}Request {
-    int id = 1
+    int32 id = 1;
 }
 
 message Update{{.FormattedFragmentName}}Request {
-    int id = 1
+    int32 id = 1;
 }
 
 message Delete{{.FormattedFragmentName}}Request {
-    int id = 1
+    int32 id = 1;
 }
 
 message Create{{.FormattedFragmentName}}Response {

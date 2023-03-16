@@ -24,7 +24,7 @@ var config []byte
 
 func BuildDomain(args []string) {
 	path := `C:\testProject`
-	domainName := strings.ToLower("gray-cats")
+	domainName := strings.ToLower("gray-dogs")
 	packageName := strings.ReplaceAll(domainName, "-", "_")
 	formattedFragmentName := toFragmentName(domainName)
 	projectName, err := gerProjectName(path)

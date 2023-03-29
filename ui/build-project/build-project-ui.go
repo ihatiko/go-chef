@@ -46,7 +46,6 @@ func InitialModel(filledInputProcessing func(args []string), titleStyle lipgloss
 
 	inputs[projectPath] = textinput.New()
 	inputs[projectPath].Placeholder = "/path/desired/here"
-	inputs[projectPath].CharLimit = 30
 	inputs[projectPath].Width = 30
 	inputs[projectPath].Prompt = ""
 

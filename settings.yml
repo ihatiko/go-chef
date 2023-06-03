@@ -1,0 +1,10 @@
+settings:
+  project:
+    ignore: [
+      main
+    ]
+    override:
+      - in: main
+        out: main-test
+        extension: go
+        template: main

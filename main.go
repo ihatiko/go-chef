@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/ihatiko/go-chef/commands/project"
-	"github.com/ihatiko/go-chef/models"
+	"github.com/ihatiko/go-chef/types"
 	"github.com/ihatiko/go-chef/ui"
 	"github.com/ihatiko/log"
 	"os"
@@ -30,7 +30,7 @@ const HelpTemplate = `
 		get a project description
 `
 
-func FillFlags(args []string, cfg *models.EnvironmentConfig) *models.EnvironmentConfig {
+func FillFlags(args []string, cfg *types.EnvironmentConfig) *types.EnvironmentConfig {
 	//TODO сделать нормально
 	for _, arg := range args {
 		formattedArg := strings.Split(arg, "=")
@@ -68,7 +68,7 @@ func CommandProcess(args []string) {
 	return
 }
 func CreateProject(args []string) {
-	createProjectConfig := &models.EnvironmentConfig{}
+	createProjectConfig := &types.EnvironmentConfig{}
 	createProjectConfig = FillFlags(args, createProjectConfig)
 	validate := validator.New()
 	err := validate.Struct(createProjectConfig)

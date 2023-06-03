@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"github.com/iancoleman/strcase"
 	dynamic_struct "github.com/ihatiko/dynamic-struct"
-	"github.com/ihatiko/go-chef/models"
 	config_parser "github.com/ihatiko/go-chef/parse/config-parser"
+	"github.com/ihatiko/go-chef/types"
 	"github.com/ihatiko/log"
 	"io/fs"
 	"os"
@@ -50,7 +50,7 @@ type Command struct {
 	skipOnError bool
 }
 
-func Mkdir(envConfig *models.EnvironmentConfig) error {
+func Mkdir(envConfig *types.EnvironmentConfig) error {
 	var err error
 	_, err = os.ReadDir(envConfig.ProjectPath)
 	if errors.Is(err, fs.ErrNotExist) {
@@ -64,7 +64,7 @@ func Mkdir(envConfig *models.EnvironmentConfig) error {
 	return err
 }
 
-func CommandsComposer(config *models.Config, commands ...Command) {
+func CommandsComposer(config *types.GenerateConfig, commands ...Command) {
 	consoleEnv := "bash"
 	if os.Getenv("GOOS") == "windows" || strings.Contains(strings.ToLower(os.Getenv("OS")), "windows") {
 		consoleEnv = "powershell"
@@ -79,12 +79,12 @@ func CommandsComposer(config *models.Config, commands ...Command) {
 	}
 }
 
-func ExecCommand(config *models.Config, command string, consoleEnv string) error {
+func ExecCommand(config *types.GenerateConfig, command string, consoleEnv string) error {
 	cmdFolder := exec.Command(consoleEnv, "-c", command)
 	var out bytes.Buffer
 	cmdFolder.Stdin = strings.NewReader("some input")
 	cmdFolder.Stderr = &out
-	cmdFolder.Dir = config.Tree.Settings.ProjectSettings.ProjectPath
+	cmdFolder.Dir = config.Tree.GenerateSettings.ProjectSettings.ProjectPath
 	cmdFolder.Run()
 	if cmdFolder.ProcessState.ExitCode() > 0 {
 		return errors.New(out.String())
@@ -92,18 +92,18 @@ func ExecCommand(config *models.Config, command string, consoleEnv string) error
 	return nil
 }
 
-func BuildTree(tree *models.Tree, env any) {
-	BuildRootFiles(tree.Settings.ProjectSettings.ProjectPath, tree.RootComponent, env)
+func BuildTree(tree *types.Tree, env any) {
+	BuildRootFiles(tree.GenerateSettings.ProjectSettings.ProjectPath, tree.RootComponent, env)
 	for _, nd := range tree.RootComponent.Nodes {
-		BuildNodes(tree.Settings.ProjectSettings.ProjectPath, nd, env)
-		BuildFiles(tree.Settings.ProjectSettings.ProjectPath, nd, env)
+		BuildNodes(tree.GenerateSettings.ProjectSettings.ProjectPath, nd, env)
+		BuildFiles(tree.GenerateSettings.ProjectSettings.ProjectPath, nd, env)
 	}
 	for _, nd := range tree.DomainComponents {
-		BuildNodes(tree.Settings.ProjectSettings.ProjectPath, nd, env)
+		BuildNodes(tree.GenerateSettings.ProjectSettings.ProjectPath, nd, env)
 	}
 }
 
-func BuildNodes(path string, node *models.Node, env any) {
+func BuildNodes(path string, node *types.Node, env any) {
 	if len(node.Nodes) > 0 || len(node.GeneratedFiles) > 0 {
 		os.Mkdir(filepath.Join(path, node.Name), os.ModePerm)
 	}
@@ -113,7 +113,7 @@ func BuildNodes(path string, node *models.Node, env any) {
 	}
 }
 
-func BuildRootFiles(path string, node *models.RootNode, obj any) {
+func BuildRootFiles(path string, node *types.RootNode, obj any) {
 	for _, file := range node.GeneratedFiles {
 		b, err := templates.ReadFile(fmt.Sprintf("templates/%s.tmpl", file.Template))
 		if err != nil {
@@ -139,7 +139,7 @@ func BuildRootFiles(path string, node *models.RootNode, obj any) {
 	}
 }
 
-func BuildFiles(path string, node *models.Node, obj any) {
+func BuildFiles(path string, node *types.Node, obj any) {
 	for _, file := range node.GeneratedFiles {
 		b, err := templates.ReadFile(fmt.Sprintf("templates/%s.tmpl", file.Template))
 
@@ -164,7 +164,7 @@ func BuildFiles(path string, node *models.Node, obj any) {
 	}
 }
 
-func FillRootSettings(file models.GeneratedFile, obj any) any {
+func FillRootSettings(file types.GeneratedFile, obj any) any {
 	if file.Name == configuration && file.Extension == yml {
 		var configYamlData []string
 		/*		for _, ext := range settings.ExternalComponents {
@@ -185,16 +185,16 @@ func FillRootSettings(file models.GeneratedFile, obj any) any {
 	return obj
 }
 
-func BuildProjectProgram(envConfig *models.EnvironmentConfig) {
+func BuildProjectProgram(envConfig *types.EnvironmentConfig) {
 	cfg, err := config_parser.LoadConfig(fTemplate)
 	if err != nil {
 		log.Fatal(err)
 	}
-	config, err := config_parser.ParseConfig[models.Config](cfg)
+	config, err := config_parser.ParseConfig[types.GenerateConfig](cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	config.Tree.Settings.ProjectSettings = envConfig
+	config.Tree.GenerateSettings.ProjectSettings = envConfig
 	err = Mkdir(envConfig)
 	if err != nil {
 		log.Error(err)
@@ -208,7 +208,7 @@ func BuildProjectProgram(envConfig *models.EnvironmentConfig) {
 	BuildTree(config.Tree, env)
 
 	CommandsComposer(config,
-		NewCommand(fmt.Sprintf(goModInit, config.Tree.Settings.ProjectSettings.ProjectName), true),
+		NewCommand(fmt.Sprintf(goModInit, config.Tree.GenerateSettings.ProjectSettings.ProjectName), true),
 		NewCommand(goFmt, true),
 		NewCommand(goModTidy, false),
 	)

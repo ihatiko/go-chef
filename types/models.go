@@ -1,12 +1,12 @@
-package models
+package types
 
 type Tree struct {
 	DomainComponents []*Node `yaml:"domain-components" mapstructure:"domain-components"`
-	Settings         *Settings
+	GenerateSettings *GenerateSettings
 	RootComponent    *RootNode `yaml:"root-component" mapstructure:"root-component"`
 }
 
-type Settings struct {
+type GenerateSettings struct {
 	ExternalComponents []string `yaml:"external-components" mapstructure:"external-components"`
 	ProjectSettings    *EnvironmentConfig
 }
@@ -14,7 +14,7 @@ type EnvironmentConfig struct {
 	ProjectName string `validate:"required"`
 	ProjectPath string `validate:"required"`
 }
-type Config struct {
+type GenerateConfig struct {
 	Tree *Tree
 }
 

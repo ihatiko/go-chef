@@ -1,3 +1,7 @@
+```bash
+    go install github.com/ihatiko/go-chef-proxy
+```
+
 Scheme
 
 (go-chef) (go-chef-core) (module) (module-command)

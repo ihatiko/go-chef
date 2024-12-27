@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	gochefcodegenutils "github.com/ihatiko/go-chef-code-gen-utils"
 	"log/slog"
 	"os"
@@ -12,10 +13,10 @@ const coreNamePackage = "go-chef-proxy"
 
 func main() {
 	params := strings.Join(os.Args[1:], " ")
-	//TODO timeout on update and tmp call
 	gochefcodegenutils.AutoUpdate(corePathPackage)
 	composer := gochefcodegenutils.NewExecutor()
-	result, err := composer.ExecDefaultCommand(coreNamePackage)
+	proxyCommand := fmt.Sprintf("%s %s", coreNamePackage, params)
+	result, err := composer.ExecDefaultCommand(proxyCommand)
 	if err != nil {
 		slog.Error("Error executing command: ", slog.Any("error", err), slog.String("command", params))
 	}

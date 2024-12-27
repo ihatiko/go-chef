@@ -12,7 +12,7 @@ const coreNamePackage = "go-chef-proxy"
 
 func main() {
 	params := strings.Join(os.Args[1:], " ")
-	//TODO timeout on update
+	//TODO timeout on update and tmp call
 	gochefcodegenutils.AutoUpdate(corePathPackage)
 	composer := gochefcodegenutils.NewExecutor()
 	result, err := composer.ExecDefaultCommand(coreNamePackage)

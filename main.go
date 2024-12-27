@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const corePathPackage = "github.com/ihatiko/gochef/cli/go-chef-core"
+const corePathPackage = "github.com/ihatiko/go-chef-proxy"
 const coreNamePackage = "go-chef-core"
 
 func main() {

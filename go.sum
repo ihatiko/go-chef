@@ -1,0 +1,4 @@
+github.com/ihatiko/go-chef-code-gen-utils v0.0.1 h1:NRfVnpAyTgNyFy211pJlrK+xK+cgxRkuqHYvSGzSO4k=
+github.com/ihatiko/go-chef-code-gen-utils v0.0.1/go.mod h1:F+6TMPP8J8XhCbq9bp2zHxVqZoAg9giOqKDcERhrYg0=
+golang.org/x/mod v0.22.0 h1:D4nJWe9zXqHOmWqj4VMOJhvzj7bEZg4wEYa759z1pH4=
+golang.org/x/mod v0.22.0/go.mod h1:6SkKJ3Xj0I0BrPOZoBy3bdMptDDU9oJrpohJ3eWZ1fY=

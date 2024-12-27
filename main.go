@@ -8,7 +8,7 @@ import (
 )
 
 const corePathPackage = "github.com/ihatiko/go-chef-proxy"
-const coreNamePackage = "go-chef-core"
+const coreNamePackage = "go-chef-proxy"
 
 func main() {
 	params := strings.Join(os.Args[1:], " ")

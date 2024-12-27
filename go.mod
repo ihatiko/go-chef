@@ -1,4 +1,4 @@
-module github.com/ihatiko/g-chef
+module github.com/ihatiko/go-chef
 
 go 1.23.4
 

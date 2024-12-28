@@ -78,7 +78,7 @@ func RunTui(err error, mainLastVersion string, config *Config, composer *gochefc
 	if err == nil && semver.Compare(build.Main.Version, mainLastVersion) == -1 && time.Now().After(config.NextUpdateTime) {
 		installCommand := fmt.Sprintf("go install %s@%s", config.BasePackage, mainLastVersion)
 		p := tea.NewProgram(tui.Model{
-			Title:   fmt.Sprintf("Available new version %s@%s update now ?", config.BasePackage, mainLastVersion),
+			Title:   fmt.Sprintf("Available new version %s update now ?", mainLastVersion),
 			Choices: []tui.Choice{tui.Yes, tui.Later},
 		})
 
@@ -93,6 +93,7 @@ func RunTui(err error, mainLastVersion string, config *Config, composer *gochefc
 				case tui.Yes:
 					command, err := composer.ExecDefaultCommand(installCommand)
 					if err != nil {
+						slog.Error("Error executing command: ", slog.Any("error", err))
 						return
 					}
 					fmt.Println(command)

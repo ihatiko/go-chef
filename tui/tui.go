@@ -66,7 +66,7 @@ func (m Model) View() string {
 		s.WriteString(string(m.Choices[i]))
 		s.WriteString("\n")
 	}
-	s.WriteString("\n(press q to quit)\n")
+	s.WriteString("\n(press q to quit)\n\n")
 
 	return s.String()
 }

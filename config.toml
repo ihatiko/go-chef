@@ -1,6 +1,9 @@
+# proxies for detect
 proxies = [
     "https://proxy.golang.org"
 ]
-proxy-package = "github.com/ihatiko/go-chef-core"
-proxy-command = "go-chef-core"
+core-package = "github.com/ihatiko/go-chef-core"
+core-command = "go-chef-core"
 base-command = "settings"
+base-package = "github.com/ihatiko/go-chef"
+interval = "1h"

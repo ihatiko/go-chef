@@ -4,25 +4,32 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	tea "github.com/charmbracelet/bubbletea"
 	gochefcodegenutils "github.com/ihatiko/go-chef-code-gen-utils"
+	"github.com/ihatiko/go-chef/tui"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
+	"golang.org/x/mod/semver"
 	"io/fs"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime/debug"
 	"strings"
+	"time"
 )
 
 const configDir = ".go-chef"
 const configFile = "go-chef.toml"
 
 type Config struct {
-	Proxies      []string `toml:"proxies"`
-	ProxyPackage string   `toml:"proxy-package"`
-	ProxyCommand string   `toml:"proxy-command"`
-	BaseCommand  string   `toml:"base-command"`
+	Proxies        []string  `toml:"proxies"`
+	CorePackage    string    `toml:"core-package"`
+	CoreCommand    string    `toml:"core-command"`
+	BaseCommand    string    `toml:"base-command"`
+	BasePackage    string    `toml:"base-package"`
+	NextUpdateTime time.Time `toml:"next-update-time"`
+	Interval       string    `toml:"interval"`
 }
 
 //go:embed config.toml
@@ -39,23 +46,84 @@ func main() {
 	}
 	params := strings.Join(os.Args[1:], " ")
 
-	// Core command - watch configs, version, and another
+	// Core command - watch configs, version, and other
 	if len(os.Args) > 1 && strings.ToLower(os.Args[1]) == config.BaseCommand {
 		setCoreModules()
 		return
 	}
 
 	updater := gochefcodegenutils.NewUpdater(config.Proxies)
-	updater.AutoUpdate(config.ProxyPackage)
+
+	mainLastVersion, err := updater.GetLastVersion(config.BasePackage)
+	if err != nil {
+		slog.Error("Error getting last version:", slog.Any("error", err), slog.String("package", config.BasePackage))
+	}
 	composer := gochefcodegenutils.NewExecutor()
-	proxyCommand := fmt.Sprintf("%s %s", config.ProxyCommand, params)
+	RunTui(err, mainLastVersion, config, composer)
+	build, _ := debug.ReadBuildInfo()
+	currentVersion := build.Main.Version
+	slog.Info("Current Version:", slog.String("version", currentVersion))
+
+	updater.AutoUpdate(config.CorePackage)
+
+	proxyCommand := fmt.Sprintf("%s %s", config.CoreCommand, params)
 	result, err := composer.ExecDefaultCommand(proxyCommand)
 	if err != nil {
 		slog.Error("Error executing command: ", slog.Any("error", err), slog.String("command", params))
 	}
 	fmt.Println(result)
 }
+func RunTui(err error, mainLastVersion string, config *Config, composer *gochefcodegenutils.Executor) {
+	build, _ := debug.ReadBuildInfo()
+	if err == nil && semver.Compare(build.Main.Version, mainLastVersion) == -1 && time.Now().After(config.NextUpdateTime) {
+		installCommand := fmt.Sprintf("go install %s@%s", config.BasePackage, mainLastVersion)
+		p := tea.NewProgram(tui.Model{
+			Title:   fmt.Sprintf("Available new version %s@%s update now ?", config.BasePackage, mainLastVersion),
+			Choices: []tui.Choice{tui.Yes, tui.Later},
+		})
 
+		// Run returns the model as a tea.Model.
+		m, err := p.Run()
+		if err != nil {
+			fmt.Println("Ups please write issue or write to support:", err)
+		} else {
+			// Assert the final tea.Model to our local model and print the choice.
+			if m, ok := m.(tui.Model); ok && m.Choice != "" {
+				switch m.Choice {
+				case tui.Yes:
+					command, err := composer.ExecDefaultCommand(installCommand)
+					if err != nil {
+						return
+					}
+					fmt.Println(command)
+				case tui.Later:
+					interval, err := time.ParseDuration(config.Interval)
+					if err != nil {
+						slog.Error("Error parsing interval:", slog.Any("error", err))
+						interval = time.Hour
+					}
+					config.NextUpdateTime = time.Now().Add(interval)
+					configBytes, err := toml.Marshal(config)
+					if err != nil {
+						slog.Error("Error marshalling config:", slog.Any("error", err))
+						return
+					}
+					dir, err := os.UserConfigDir()
+					if err != nil {
+						slog.Error("Error getting user cache dir", slog.Any("err", err))
+						return
+					}
+					configPath := filepath.Join(dir, configDir, configFile)
+					err = os.WriteFile(configPath, configBytes, fs.ModePerm)
+					if err != nil {
+						slog.Error("Error writing config file:", slog.Any("err", err))
+						return
+					}
+				}
+			}
+		}
+	}
+}
 func setCoreModules() {
 	dir, err := os.UserConfigDir()
 	if err != nil {

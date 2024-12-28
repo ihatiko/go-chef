@@ -62,8 +62,10 @@ func main() {
 	RunTui(err, mainLastVersion, config, composer)
 	build, _ := debug.ReadBuildInfo()
 	currentVersion := build.Main.Version
-	slog.Info("Current Version:", slog.String("version", currentVersion))
-
+	if currentVersion == "" {
+		currentVersion = "v0.0.0-dev"
+	}
+	slog.Info(fmt.Sprintf("Current Version: %s", currentVersion))
 	updater.AutoUpdate(config.CorePackage)
 
 	proxyCommand := fmt.Sprintf("%s %s", config.CoreCommand, params)
@@ -91,12 +93,17 @@ func RunTui(err error, mainLastVersion string, config *Config, composer *gochefc
 			if m, ok := m.(tui.Model); ok && m.Choice != "" {
 				switch m.Choice {
 				case tui.Yes:
+					slog.Info("try update", slog.String("command", installCommand))
 					command, err := composer.ExecDefaultCommand(installCommand)
 					if err != nil {
 						slog.Error("Error executing command: ", slog.Any("error", err))
 						return
 					}
-					fmt.Println(command)
+					if command.Len() > 0 {
+						fmt.Println(command)
+					}
+
+					slog.Info("update success", slog.String("command", installCommand))
 				case tui.Later:
 					interval, err := time.ParseDuration(config.Interval)
 					if err != nil {

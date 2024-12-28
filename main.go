@@ -59,7 +59,11 @@ func main() {
 		slog.Error("Error getting last version:", slog.Any("error", err), slog.String("package", config.BasePackage))
 	}
 	composer := gochefcodegenutils.NewExecutor()
-	RunTui(err, mainLastVersion, config, composer)
+	updateStatus := runUpdateTui(err, mainLastVersion, config, composer)
+	if updateStatus {
+		slog.Info("Update succeeded try command again")
+		return
+	}
 	build, _ := debug.ReadBuildInfo()
 	currentVersion := build.Main.Version
 	if currentVersion == "" {
@@ -67,7 +71,7 @@ func main() {
 	}
 	slog.Info(fmt.Sprintf("Current Version: %s", currentVersion))
 	updater.AutoUpdate(config.CorePackage)
-
+	fmt.Printf("\n")
 	proxyCommand := fmt.Sprintf("%s %s", config.CoreCommand, params)
 	result, err := composer.ExecDefaultCommand(proxyCommand)
 	if err != nil {
@@ -75,7 +79,7 @@ func main() {
 	}
 	fmt.Println(result)
 }
-func RunTui(err error, mainLastVersion string, config *Config, composer *gochefcodegenutils.Executor) {
+func runUpdateTui(err error, mainLastVersion string, config *Config, composer *gochefcodegenutils.Executor) bool {
 	build, _ := debug.ReadBuildInfo()
 	if err == nil && semver.Compare(build.Main.Version, mainLastVersion) == -1 && time.Now().After(config.NextUpdateTime) {
 		installCommand := fmt.Sprintf("go install %s@%s", config.BasePackage, mainLastVersion)
@@ -97,13 +101,14 @@ func RunTui(err error, mainLastVersion string, config *Config, composer *gochefc
 					command, err := composer.ExecDefaultCommand(installCommand)
 					if err != nil {
 						slog.Error("Error executing command: ", slog.Any("error", err))
-						return
+						return false
 					}
 					if command.Len() > 0 {
 						fmt.Println(command)
 					}
 
 					slog.Info("update success", slog.String("command", installCommand))
+					return true
 				case tui.Later:
 					interval, err := time.ParseDuration(config.Interval)
 					if err != nil {
@@ -114,23 +119,24 @@ func RunTui(err error, mainLastVersion string, config *Config, composer *gochefc
 					configBytes, err := toml.Marshal(config)
 					if err != nil {
 						slog.Error("Error marshalling config:", slog.Any("error", err))
-						return
+						return false
 					}
 					dir, err := os.UserHomeDir()
 					if err != nil {
 						slog.Error("Error getting user cache dir", slog.Any("err", err))
-						return
+						return false
 					}
 					configPath := filepath.Join(dir, configDir, configFile)
 					err = os.WriteFile(configPath, configBytes, fs.ModePerm)
 					if err != nil {
 						slog.Error("Error writing config file:", slog.Any("err", err))
-						return
+						return false
 					}
 				}
 			}
 		}
 	}
+	return false
 }
 func setCoreModules() {
 	dir, err := os.UserHomeDir()

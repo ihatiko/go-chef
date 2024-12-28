@@ -3,8 +3,9 @@ module github.com/ihatiko/go-chef
 go 1.23.4
 
 require (
-	github.com/ihatiko/go-chef-code-gen-utils v0.0.2
-	github.com/ihatiko/go-chef-modules-sdk v0.0.1
+	github.com/ihatiko/go-chef-code-gen-utils v0.0.3
+	github.com/ihatiko/go-chef-modules-sdk v0.0.2
+	github.com/pelletier/go-toml/v2 v2.2.3
 )
 
 require (

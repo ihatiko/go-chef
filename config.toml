@@ -1,0 +1,6 @@
+proxies = [
+    "https://proxy.golang.org"
+]
+proxy-package = "github.com/ihatiko/go-chef-proxy"
+proxy-command = "go-chef-proxy"
+base-command = "settings"

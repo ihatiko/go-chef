@@ -35,7 +35,7 @@ type Config struct {
 //go:embed config.toml
 var defaultConfig []byte
 
-// Step 1 => check config in UserConfigDir
+// Step 1 => check config in UserHomeDir
 // Step 2 => if it does not exist config => Copy default config
 // Step 3 => marshal config
 
@@ -109,7 +109,7 @@ func RunTui(err error, mainLastVersion string, config *Config, composer *gochefc
 						slog.Error("Error marshalling config:", slog.Any("error", err))
 						return
 					}
-					dir, err := os.UserConfigDir()
+					dir, err := os.UserHomeDir()
 					if err != nil {
 						slog.Error("Error getting user cache dir", slog.Any("err", err))
 						return
@@ -126,7 +126,7 @@ func RunTui(err error, mainLastVersion string, config *Config, composer *gochefc
 	}
 }
 func setCoreModules() {
-	dir, err := os.UserConfigDir()
+	dir, err := os.UserHomeDir()
 	if err != nil {
 		slog.Error("Error getting user cache dir", slog.Any("err", err))
 		return
@@ -189,7 +189,7 @@ func exists(path string) (bool, error) {
 }
 
 func getConfig() *Config {
-	dir, err := os.UserConfigDir()
+	dir, err := os.UserHomeDir()
 	if err != nil {
 		slog.Error("Error getting user cache dir", slog.Any("err", err))
 		return nil
@@ -209,8 +209,9 @@ func getConfig() *Config {
 		}
 		if !dirState {
 			slog.Info("Config dir does not exist, creating", slog.Any("dir", dirPath))
-			err := os.Mkdir(configDir, os.ModePerm)
+			err := os.Mkdir(dirPath, os.ModePerm)
 			if err != nil {
+				slog.Error("Error creating config dir", slog.Any("err", err))
 				return nil
 			}
 		}
